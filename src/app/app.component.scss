@@ -1,0 +1,87 @@
+$background: #0f172a;
+$foreground: #f8fafc;
+$accent: #38bdf8;
+$card-bg: rgba(15, 23, 42, 0.85);
+$card-border: rgba(148, 163, 184, 0.4);
+
+:host {
+	display: block;
+	min-height: 100vh;
+	background:
+		radial-gradient(circle at 10% 20%, rgba(56, 189, 248, 0.2), transparent 45%),
+		radial-gradient(circle at 90% 10%, rgba(244, 114, 182, 0.2), transparent 45%),
+		linear-gradient(135deg, #020617, #0f172a 55%, #020617);
+	color: $foreground;
+}
+
+.layout {
+	margin: 0 auto;
+	padding: 6rem 2rem 4rem;
+	max-width: 960px;
+	display: grid;
+	gap: 3rem;
+}
+
+.hero {
+	display: grid;
+	gap: 1.5rem;
+
+	h1 {
+		font-size: clamp(2.5rem, 5vw, 3.5rem);
+		font-weight: 700;
+		letter-spacing: 0.04em;
+		color: $foreground;
+		margin: 0;
+	}
+
+	p {
+		margin: 0;
+		font-size: 1.125rem;
+		max-width: 640px;
+		line-height: 1.6;
+		color: lighten($foreground, 25%);
+	}
+}
+
+.next-steps {
+	background: $card-bg;
+	border: 1px solid $card-border;
+	border-radius: 1.25rem;
+	padding: 2.5rem;
+	box-shadow: 0 30px 60px rgba(2, 6, 23, 0.35);
+
+	h2 {
+		margin: 0 0 1.5rem;
+		font-size: 1.5rem;
+		font-weight: 600;
+		color: lighten($foreground, 15%);
+	}
+
+	ul {
+		margin: 0;
+		padding-left: 1.5rem;
+		display: grid;
+		gap: 0.75rem;
+		list-style: disc;
+	}
+
+	li {
+		line-height: 1.6;
+		color: lighten($foreground, 35%);
+
+		&::marker {
+			color: $accent;
+		}
+	}
+}
+
+@media (max-width: 768px) {
+	.layout {
+		padding-top: 4rem;
+		gap: 2rem;
+	}
+
+	.next-steps {
+		padding: 2rem 1.75rem;
+	}
+}
