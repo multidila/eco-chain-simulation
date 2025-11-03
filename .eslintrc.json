@@ -76,25 +76,25 @@
 						"default": {
 							"memberTypes": [
 								"signature",
-								"public-static-field",
-								"protected-static-field",
 								"private-static-field",
-								"public-decorated-field",
-								"protected-decorated-field",
-								"private-decorated-field",
-								"public-instance-field",
-								"protected-instance-field",
+								"protected-static-field",
+								"public-static-field",
 								"private-instance-field",
+								"protected-instance-field",
+								"public-instance-field",
+								"private-decorated-field",
+								"protected-decorated-field",
+								"public-decorated-field",
 								"constructor",
-								"public-static-method",
-								"protected-static-method",
 								"private-static-method",
-								"public-decorated-method",
-								"protected-decorated-method",
+								"protected-static-method",
+								"public-static-method",
 								"private-decorated-method",
-								"public-instance-method",
+								"protected-decorated-method",
+								"public-decorated-method",
+								"private-instance-method",
 								"protected-instance-method",
-								"private-instance-method"
+								"public-instance-method"
 							],
 							"order": "as-written"
 						}

@@ -1,0 +1,66 @@
+import { ActionType, AgentType } from '../../enums';
+import { Action, BehaviorStrategy, NeuralNetwork, SensorData } from '../../models';
+
+export class NeuralNetworkBehaviorStrategy implements BehaviorStrategy {
+	constructor(
+		private readonly _actions: Map<ActionType, Action>,
+		private readonly _agentMapping: AgentType[],
+		private readonly _actionMapping: ActionType[],
+		private readonly _neuralNetwork: NeuralNetwork,
+	) {}
+
+	private _convertSensorsToInputs(sensors: SensorData): number[] {
+		const inputs: number[] = [];
+		for (const agentType of this._agentMapping) {
+			inputs.push(sensors.agentsAhead.get(agentType) || 0);
+		}
+		for (const agentType of this._agentMapping) {
+			inputs.push(sensors.agentsLeft.get(agentType) || 0);
+		}
+		for (const agentType of this._agentMapping) {
+			inputs.push(sensors.agentsRight.get(agentType) || 0);
+		}
+		for (const agentType of this._agentMapping) {
+			inputs.push(sensors.agentsNearby.get(agentType) || 0);
+		}
+		return inputs;
+	}
+
+	private _feedForward(inputs: number[]): number[] {
+		this._neuralNetwork.inputs = inputs;
+		const hiddenOutputs: number[] = [];
+		for (let i = 0; i < this._neuralNetwork.weights.length; i++) {
+			let sum = this._neuralNetwork.biases[i];
+			for (let j = 0; j < inputs.length; j++) {
+				sum += inputs[j] * this._neuralNetwork.weights[i][j];
+			}
+			hiddenOutputs.push(Math.tanh(sum));
+		}
+		this._neuralNetwork.outputs = hiddenOutputs;
+		return hiddenOutputs;
+	}
+
+	private _selectAction(outputs: number[]): Action {
+		const sortedIndices = outputs
+			.map((value, index) => ({ value, index }))
+			.sort((a, b) => b.value - a.value)
+			.map((item) => item.index);
+		for (const index of sortedIndices) {
+			const actionType = this._actionMapping[index];
+			if (!actionType) {
+				continue;
+			}
+			const action = this._actions.get(actionType);
+			if (action) {
+				return action;
+			}
+		}
+		throw new Error('No valid action found in neural network outputs');
+	}
+
+	public decide(sensors: SensorData): Action {
+		const inputs = this._convertSensorsToInputs(sensors);
+		const outputs = this._feedForward(inputs);
+		return this._selectAction(outputs);
+	}
+}
