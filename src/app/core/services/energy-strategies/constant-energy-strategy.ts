@@ -5,6 +5,10 @@ export class ConstantEnergyStrategy implements EnergyStrategy {
 		return this._energy;
 	}
 
+	public get maxEnergy(): number {
+		return this._energy;
+	}
+
 	constructor(private readonly _energy: number) {}
 
 	public metabolize(): void {}
