@@ -3,10 +3,14 @@ import { Injectable } from '@angular/core';
 import { DirectionType } from '../../enums';
 import { Agent, Environment } from '../../models';
 
-interface AgentState {
+export interface GridPosition {
 	x: number;
 	y: number;
+}
+
+interface AgentState {
 	agent: Agent;
+	position: GridPosition;
 	direction: DirectionType;
 }
 
@@ -20,24 +24,36 @@ export class GridEnvironmentService implements Environment {
 		this._agentStates = new Map();
 	}
 
-	private _calculatePositionAhead(x: number, y: number, direction: DirectionType): { x: number; y: number } {
-		let newX = x;
-		let newY = y;
+	public getNextPosition(position: GridPosition, direction: DirectionType, distance: number = 0): GridPosition {
+		let newX = position.x;
+		let newY = position.y;
 		switch (direction) {
 			case DirectionType.North:
-				newY = (y - 1 + this._gridSize) % this._gridSize;
+				newY = (position.y - 1 + this._gridSize) % this._gridSize;
 				break;
 			case DirectionType.East:
-				newX = (x + 1) % this._gridSize;
+				newX = (position.x + 1) % this._gridSize;
 				break;
 			case DirectionType.South:
-				newY = (y + 1) % this._gridSize;
+				newY = (position.y + 1) % this._gridSize;
 				break;
 			case DirectionType.West:
-				newX = (x - 1 + this._gridSize) % this._gridSize;
+				newX = (position.x - 1 + this._gridSize) % this._gridSize;
 				break;
 		}
-		return { x: newX, y: newY };
+		const newPosition: GridPosition = { x: newX, y: newY };
+		if (distance === 0) {
+			return newPosition;
+		}
+		return this.getNextPosition(newPosition, direction, distance--);
+	}
+
+	public getAgentAt(position: GridPosition): Agent | null {
+		const agentId = this._grid[position.y][position.x];
+		if (!agentId) {
+			return null;
+		}
+		return this._agentStates.get(agentId)?.agent ?? null;
 	}
 
 	public getAgentAhead(agentId: string): Agent | null {
@@ -45,7 +61,7 @@ export class GridEnvironmentService implements Environment {
 		if (!state) {
 			return null;
 		}
-		const { x, y } = this._calculatePositionAhead(state.x, state.y, state.direction);
+		const { x, y } = this.getNextPosition(state.position, state.direction);
 		const targetAgentId = this._grid[y][x];
 		if (!targetAgentId) {
 			return null;
@@ -57,14 +73,19 @@ export class GridEnvironmentService implements Environment {
 		return this._agentStates.get(agentId)?.direction ?? null;
 	}
 
-	public addAgent(agent: Agent, x: number, y: number, direction: DirectionType): void {
+	public getAgentPosition(agentId: string): GridPosition | null {
+		return this._agentStates.get(agentId)?.position ?? null;
+	}
+
+	public addAgent(agent: Agent, position: GridPosition, direction: DirectionType): void {
+		const { x, y } = position;
 		if (this._agentStates.has(agent.id)) {
 			throw new Error(`Agent with id ${agent.id} already exists`);
 		}
 		if (this._grid[y][x] !== null) {
 			throw new Error(`Position (${x}, ${y}) is already occupied`);
 		}
-		this._agentStates.set(agent.id, { agent, direction, x, y });
+		this._agentStates.set(agent.id, { agent, direction, position: { x, y } });
 		this._grid[y][x] = agent.id;
 	}
 
@@ -73,14 +94,14 @@ export class GridEnvironmentService implements Environment {
 		if (!state) {
 			return;
 		}
-		const newPosition = this._calculatePositionAhead(state.x, state.y, state.direction);
+		const oldPosition = state.position;
+		const newPosition = this.getNextPosition(oldPosition, state.direction);
 		if (this._grid[newPosition.y][newPosition.x] !== null) {
 			return;
 		}
-		this._grid[state.y][state.x] = null;
+		this._grid[oldPosition.y][oldPosition.x] = null;
 		this._grid[newPosition.y][newPosition.x] = agentId;
-		state.x = newPosition.x;
-		state.y = newPosition.y;
+		state.position = newPosition;
 	}
 
 	public removeAgent(agentId: string): void {
@@ -88,7 +109,7 @@ export class GridEnvironmentService implements Environment {
 		if (!state) {
 			return;
 		}
-		this._grid[state.y][state.x] = null;
+		this._grid[state.position.y][state.position.x] = null;
 		this._agentStates.delete(agentId);
 	}
 
