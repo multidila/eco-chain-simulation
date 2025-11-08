@@ -1,9 +1,9 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable, InjectionToken } from '@angular/core';
 
-import { LEFT_ROTATION, RIGHT_ROTATION } from '../../constants';
-import { AgentType, DirectionType } from '../../enums';
-import { Sensor, SensorData } from '../../models';
-import { GridEnvironmentService, GridPosition } from '../environment';
+import { LEFT_ROTATION, RIGHT_ROTATION } from '../../../constants';
+import { AgentType, DirectionType } from '../../../enums';
+import { Agent, Sensor, SensorData } from '../../../models';
+import { GridEnvironmentService, GridPosition } from '../../environment/grid';
 
 interface ScanConeOptions {
 	range: number;
@@ -15,13 +15,26 @@ interface ScanSquareOptions {
 	radius: number;
 }
 
+export const GRID_SENSOR_SERVICE_CONFIG = new InjectionToken<GridSensorServiceConfig>('GRID_SENSOR_SERVICE_CONFIG');
+
+export interface GridSensorServiceConfig {
+	agentTypes: AgentType[];
+	visionRange: number;
+}
+
 @Injectable()
-export class GridSensorService implements Sensor {
-	constructor(
-		private readonly _environment: GridEnvironmentService,
-		private readonly _agentTypes: AgentType[],
-		private readonly _visionRange: number,
-	) {}
+export class GridSensorService<TAgent extends Agent = Agent> extends Sensor<TAgent, GridEnvironmentService> {
+	private readonly _config = inject(GRID_SENSOR_SERVICE_CONFIG);
+
+	private _environment!: GridEnvironmentService;
+
+	private get _visionRange(): number {
+		return this._config.visionRange;
+	}
+
+	private get _agentTypes(): AgentType[] {
+		return this._config.agentTypes;
+	}
 
 	private _initializeAgentMap(): Map<AgentType, number> {
 		const map = new Map<AgentType, number>();
@@ -114,15 +127,16 @@ export class GridSensorService implements Sensor {
 	}
 
 	private _bumpCountsFromPos(position: GridPosition, agentsCountMap: Map<AgentType, number>): void {
-		const agent = this._environment.getAgentAt(position);
-		if (agent) {
+		const agents = this._environment.getAgentsAt(position);
+		for (const agent of agents) {
 			agentsCountMap.set(agent.type, (agentsCountMap.get(agent.type) ?? 0) + 1);
 		}
 	}
 
-	public getSensorData(agentId: string): SensorData {
-		const position = this._environment.getAgentPosition(agentId);
-		const direction = this._environment.getAgentDirection(agentId);
+	public getSensorData(agent: TAgent, environment: GridEnvironmentService): SensorData {
+		this._environment = environment;
+		const position = this._environment.getAgentPosition(agent.id);
+		const direction = this._environment.getAgentDirection(agent.id);
 		if (!position || !direction) {
 			return {
 				agentsAhead: this._initializeAgentMap(),

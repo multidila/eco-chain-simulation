@@ -1,13 +1,15 @@
 import { DirectionType } from '../../enums';
-import { Action, Agent, Environment } from '../../models';
+import { Agent, BaseActionHandler, Environment } from '../../models';
 
-export class RotateAction implements Action {
+export class RotateAction extends BaseActionHandler {
 	constructor(
 		private readonly _environment: Environment,
 		private readonly _rotationMap: Map<DirectionType, DirectionType>,
-	) {}
+	) {
+		super();
+	}
 
-	public execute(agent: Agent): void {
+	public innerExecute(agent: Agent): void {
 		const currentDirection = this._environment.getAgentDirection(agent.id);
 		if (!currentDirection) {
 			return;

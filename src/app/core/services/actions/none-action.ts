@@ -1,5 +1,5 @@
-import { Action, Agent } from '../../models';
+import { Agent, BaseActionHandler } from '../../models';
 
-export class NoneAction implements Action {
-	public execute(agent: Agent): void {}
+export class NoneAction extends BaseActionHandler<Agent> {
+	public innerExecute(agent: Agent): void {}
 }

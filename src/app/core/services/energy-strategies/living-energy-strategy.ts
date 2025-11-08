@@ -15,6 +15,10 @@ export class LivingEnergyStrategy implements EnergyStrategy {
 		return this._maxEnergy;
 	}
 
+	public get metabolismRate(): number {
+		return this._metabolismRate;
+	}
+
 	public metabolize(): void {
 		this.consumeEnergy(this._metabolismRate);
 	}

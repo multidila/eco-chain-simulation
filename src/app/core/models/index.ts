@@ -3,7 +3,6 @@ export * from './agents';
 export * from './environment';
 export * from './neural-network.model';
 export * from './sensor';
-export * from './sensor-data.model';
-export * from './simulation-config.model';
+export * from './simulation';
 export * from './simulation-statistics.model';
 export * from './strategies';

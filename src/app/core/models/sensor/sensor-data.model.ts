@@ -1,4 +1,4 @@
-import { AgentType } from '../enums';
+import { AgentType } from '../../enums';
 
 export interface SensorData {
 	agentsAhead: Map<AgentType, number>;

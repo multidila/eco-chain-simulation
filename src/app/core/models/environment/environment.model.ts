@@ -1,10 +1,15 @@
+import { Injectable } from '@angular/core';
+
 import type { DirectionType } from '../../enums';
 import type { Agent } from '../agents/agent.model';
 
-export interface Environment {
-	getAgentAhead(agentId: string): Agent | null;
-	getAgentDirection(agentId: string): DirectionType | null;
-	moveAgent(agentId: string): void;
-	removeAgent(agentId: string): void;
-	rotateAgent(agentId: string, direction: DirectionType): void;
+@Injectable()
+export abstract class Environment<TConfig = unknown> {
+	public abstract init(config: TConfig): void;
+	public abstract getAgentsAhead(agentId: string): Agent[];
+	public abstract getAgentDirection(agentId: string): DirectionType | null;
+	public abstract addAgent(agent: Agent, direction?: DirectionType): void;
+	public abstract moveAgent(agentId: string): void;
+	public abstract removeAgent(agentId: string): void;
+	public abstract rotateAgent(agentId: string, direction: DirectionType): void;
 }
