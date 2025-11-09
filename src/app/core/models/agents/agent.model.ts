@@ -1,5 +1,6 @@
 import { AgentType } from '../../enums';
-import { BehaviorStrategy } from '../strategies';
+// eslint-disable-next-line import/no-cycle
+import { BehaviorStrategy } from '../strategies/';
 
 export interface Agent {
 	readonly id: string;

@@ -2,6 +2,7 @@ export * from './die-action';
 export * from './eat-action';
 export * from './metabolize-action';
 export * from './move-forward-action';
+export * from './neural-network-decision-action';
 export * from './none-action';
 export * from './reproduce-action';
 export * from './respawn-action';

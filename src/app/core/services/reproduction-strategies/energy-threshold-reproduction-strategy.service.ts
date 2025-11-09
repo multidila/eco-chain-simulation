@@ -1,4 +1,4 @@
-import { inject, Injectable, InjectionToken } from '@angular/core';
+import { Inject, inject, Injectable, InjectionToken } from '@angular/core';
 
 import { LivingAgent, ReproductionStrategy } from '../../models';
 import { AGENT_FACTORIES } from '../../tokens';
@@ -15,8 +15,12 @@ export interface EnergyThresholdReproductionStrategyConfig {
 export class EnergyThresholdReproductionStrategy<TAgent extends LivingAgent = LivingAgent>
 	implements ReproductionStrategy<TAgent>
 {
-	private readonly _config = inject(ENERGY_THRESHOLD_REPRODUCTION_STRATEGY_CONFIG);
 	private readonly _agentFactories = inject(AGENT_FACTORIES);
+
+	constructor(
+		@Inject(ENERGY_THRESHOLD_REPRODUCTION_STRATEGY_CONFIG)
+		private readonly _config: EnergyThresholdReproductionStrategyConfig,
+	) {}
 
 	public reproduce(parent: TAgent): TAgent | null {
 		const energyStrategy = parent.energyStrategy;

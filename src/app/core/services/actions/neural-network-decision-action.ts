@@ -1,13 +1,17 @@
 import { ActionType, AgentType } from '../../enums';
-import { Action, BehaviorStrategy, NeuralNetwork, SensorData } from '../../models';
+import { Action, Agent, BaseActionHandler, Environment, NeuralNetwork, Sensor, SensorData } from '../../models';
 
-export class NeuralNetworkBehaviorStrategy implements BehaviorStrategy {
+export class NeuralNetworkDecisionAction extends BaseActionHandler<Agent> {
 	constructor(
 		private readonly _actions: Map<ActionType, Action>,
 		private readonly _agentMapping: AgentType[],
 		private readonly _actionMapping: ActionType[],
 		private readonly _neuralNetwork: NeuralNetwork,
-	) {}
+		private readonly _sensor: Sensor,
+		private readonly _environment: Environment,
+	) {
+		super();
+	}
 
 	private _convertSensorsToInputs(sensors: SensorData): number[] {
 		const inputs: number[] = [];
@@ -58,9 +62,10 @@ export class NeuralNetworkBehaviorStrategy implements BehaviorStrategy {
 		throw new Error('No valid action found in neural network outputs');
 	}
 
-	public decide(sensors: SensorData): Action {
-		const inputs = this._convertSensorsToInputs(sensors);
+	public execute(agent: Agent): void {
+		const sensorData = this._sensor.getSensorData(agent, this._environment);
+		const inputs = this._convertSensorsToInputs(sensorData);
 		const outputs = this._feedForward(inputs);
-		return this._selectAction(outputs);
+		this._selectAction(outputs).execute(agent);
 	}
 }

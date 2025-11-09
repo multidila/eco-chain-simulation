@@ -46,9 +46,9 @@ export class SimulationEngine {
 	}
 
 	public reset(): void {
-		this._state.agents.forEach((agent) => {
+		for (const agent of this._state.agents.values()) {
 			this._environment.removeAgent(agent.id);
-		});
+		}
 		this._state.agents.clear();
 		this._state.iteration = 0;
 	}
@@ -59,10 +59,8 @@ export class SimulationEngine {
 		}
 		this._state.iteration++;
 		this._shuffle(Array.from(this._state.agents.values()));
-		this._state.agents.forEach((agent) => {
-			const agentSensorData = this._sensor.getSensorData(agent, this._environment);
-			const agentAction = agent.behaviorStrategy.decide(agentSensorData);
-			agentAction.execute(agent);
-		});
+		for (const agent of this._state.agents.values()) {
+			agent.behaviorStrategy.act();
+		}
 	}
 }
