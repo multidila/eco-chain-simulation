@@ -6,7 +6,7 @@ export class ReproduceAction extends BaseActionHandler<LivingAgent> {
 	}
 
 	public execute(agent: LivingAgent): void {
-		const offspring = agent.reproductionStrategy.reproduce(agent);
+		const offspring = agent.reproductionStrategy?.reproduce(agent);
 		if (offspring) {
 			this._environment.addAgent(offspring);
 		}

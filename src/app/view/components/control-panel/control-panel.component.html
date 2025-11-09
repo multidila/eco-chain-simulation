@@ -1,0 +1,203 @@
+<mat-card class="control-panel">
+	<mat-card-header class="control-panel-header">
+		<mat-card-title>Management</mat-card-title>
+	</mat-card-header>
+
+	<mat-card-content>
+		<div class="control-buttons">
+			@if (isStopped) {
+				<button type="button" mat-raised-button color="primary" (click)="onStart()">START</button>
+			}
+			@if (isRunning) {
+				<button type="button" mat-raised-button color="warn" (click)="onPause()">PAUSE</button>
+			}
+			@if (isPaused) {
+				<button type="button" mat-raised-button color="accent" (click)="onResume()">RESUME</button>
+			}
+			<button type="button" mat-raised-button (click)="onStop()" [disabled]="isStopped">STOP</button>
+		</div>
+
+		<mat-tab-group class="params-tabs">
+			<mat-tab label="Simulation">
+				<div class="tab-content">
+					<mat-form-field>
+						<mat-label>Iterations</mat-label>
+						<input matInput type="number" [(ngModel)]="params().simulation.iterations" />
+					</mat-form-field>
+				</div>
+			</mat-tab>
+
+			<mat-tab label="Environment">
+				<div class="tab-content">
+					<mat-form-field>
+						<mat-label>Grid Size</mat-label>
+						<input matInput type="number" [(ngModel)]="params().environment.gridSize" />
+					</mat-form-field>
+					<mat-form-field>
+						<mat-label>Seed</mat-label>
+						<input matInput type="number" [(ngModel)]="params().environment.seed" />
+					</mat-form-field>
+				</div>
+			</mat-tab>
+
+			<mat-tab label="Agents">
+				<div class="tab-content">
+					<mat-expansion-panel>
+						<mat-expansion-panel-header>
+							<mat-panel-title>Plant</mat-panel-title>
+						</mat-expansion-panel-header>
+						<div class="agent-params">
+							<div class="param-group">
+								<div class="group-label">General</div>
+								<mat-form-field>
+									<mat-label>Count</mat-label>
+									<input matInput type="number" [(ngModel)]="params().agents.plant.count" />
+								</mat-form-field>
+							</div>
+
+							<mat-divider />
+
+							<div class="param-group">
+								<div class="group-label">Energy</div>
+								<mat-form-field>
+									<mat-label>Initial Energy</mat-label>
+									<input matInput type="number" [(ngModel)]="params().agents.plant.energy.initial" />
+								</mat-form-field>
+							</div>
+						</div>
+					</mat-expansion-panel>
+
+					<mat-expansion-panel>
+						<mat-expansion-panel-header>
+							<mat-panel-title>Herbivore</mat-panel-title>
+						</mat-expansion-panel-header>
+						<div class="agent-params">
+							<div class="param-group">
+								<div class="group-label">General</div>
+								<mat-form-field>
+									<mat-label>Count</mat-label>
+									<input matInput type="number" [(ngModel)]="params().agents.herbivore.count" />
+								</mat-form-field>
+							</div>
+
+							<mat-divider />
+
+							<div class="param-group">
+								<div class="group-label">Energy</div>
+								<mat-form-field>
+									<mat-label>Initial Energy</mat-label>
+									<input
+										matInput
+										type="number"
+										[(ngModel)]="params().agents.herbivore.energy.initial"
+									/>
+								</mat-form-field>
+								<mat-form-field>
+									<mat-label>Max Energy</mat-label>
+									<input matInput type="number" [(ngModel)]="params().agents.herbivore.energy.max" />
+								</mat-form-field>
+								<mat-form-field>
+									<mat-label>Metabolism Rate</mat-label>
+									<input
+										matInput
+										type="number"
+										[(ngModel)]="params().agents.herbivore.energy.metabolismRate"
+									/>
+								</mat-form-field>
+							</div>
+
+							<mat-divider />
+
+							<div class="param-group">
+								<div class="group-label">Reproduction</div>
+								<mat-form-field>
+									<mat-label>Threshold</mat-label>
+									<input
+										matInput
+										type="number"
+										step="0.1"
+										[(ngModel)]="params().agents.herbivore.reproduction.threshold"
+									/>
+								</mat-form-field>
+								<mat-form-field>
+									<mat-label>Share Rate</mat-label>
+									<input
+										matInput
+										type="number"
+										step="0.1"
+										[(ngModel)]="params().agents.herbivore.reproduction.shareRate"
+									/>
+								</mat-form-field>
+							</div>
+						</div>
+					</mat-expansion-panel>
+
+					<mat-expansion-panel>
+						<mat-expansion-panel-header>
+							<mat-panel-title>Carnivore</mat-panel-title>
+						</mat-expansion-panel-header>
+						<div class="agent-params">
+							<div class="param-group">
+								<div class="group-label">General</div>
+								<mat-form-field>
+									<mat-label>Count</mat-label>
+									<input matInput type="number" [(ngModel)]="params().agents.carnivore.count" />
+								</mat-form-field>
+							</div>
+
+							<mat-divider />
+
+							<div class="param-group">
+								<div class="group-label">Energy</div>
+								<mat-form-field>
+									<mat-label>Initial Energy</mat-label>
+									<input
+										matInput
+										type="number"
+										[(ngModel)]="params().agents.carnivore.energy.initial"
+									/>
+								</mat-form-field>
+								<mat-form-field>
+									<mat-label>Max Energy</mat-label>
+									<input matInput type="number" [(ngModel)]="params().agents.carnivore.energy.max" />
+								</mat-form-field>
+								<mat-form-field>
+									<mat-label>Metabolism Rate</mat-label>
+									<input
+										matInput
+										type="number"
+										[(ngModel)]="params().agents.carnivore.energy.metabolismRate"
+									/>
+								</mat-form-field>
+							</div>
+
+							<mat-divider />
+
+							<div class="param-group">
+								<div class="group-label">Reproduction</div>
+								<mat-form-field>
+									<mat-label>Threshold</mat-label>
+									<input
+										matInput
+										type="number"
+										step="0.1"
+										[(ngModel)]="params().agents.carnivore.reproduction.threshold"
+									/>
+								</mat-form-field>
+								<mat-form-field>
+									<mat-label>Share Rate</mat-label>
+									<input
+										matInput
+										type="number"
+										step="0.1"
+										[(ngModel)]="params().agents.carnivore.reproduction.shareRate"
+									/>
+								</mat-form-field>
+							</div>
+						</div>
+					</mat-expansion-panel>
+				</div>
+			</mat-tab>
+		</mat-tab-group>
+	</mat-card-content>
+</mat-card>

@@ -1,0 +1,21 @@
+<div class="grid-container">
+	@for (row of gridData(); track row) {
+		<div class="grid-row">
+			@for (cell of row; track cell.x) {
+				<div class="grid-cell">
+					@for (agent of cell.agents; track agent.id) {
+						@if (isPlant(agent)) {
+							<div class="agent plant" [style.opacity]="getAgentOpacity(agent)"></div>
+						}
+						@if (isHerbivore(agent)) {
+							<div class="agent herbivore" [style.opacity]="getAgentOpacity(agent)"></div>
+						}
+						@if (isCarnivore(agent)) {
+							<div class="agent carnivore" [style.opacity]="getAgentOpacity(agent)"></div>
+						}
+					}
+				</div>
+			}
+		</div>
+	}
+</div>

@@ -1,0 +1,23 @@
+<div class="simulation-wrapper">
+	<header class="simulation-header">
+		<h1>EcoChain Simulation</h1>
+	</header>
+
+	<div class="simulation-container">
+		<app-control-panel
+			[status]="status()"
+			[params]="params()"
+			(startSimulation)="onStart()"
+			(pauseSimulation)="onPause()"
+			(resumeSimulation)="onResume()"
+			(stopSimulation)="onStop()"
+			(paramsChange)="onParamsChange($event)"
+		/>
+
+		<app-simulation-visualization
+			[state]="currentState()"
+			[gridSize]="params().environment.gridSize"
+			[history]="[]"
+		/>
+	</div>
+</div>

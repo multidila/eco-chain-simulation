@@ -1,0 +1,55 @@
+<div class="visualization-container">
+	<mat-card class="info-card">
+		<mat-card-header class="info-card-header">
+			<mat-card-title>Information</mat-card-title>
+		</mat-card-header>
+		<mat-card-content>
+			<div class="stats">
+				<div class="stat-item">
+					<span class="label">Iteration:</span>
+					<span class="value">{{ stats().iteration }}</span>
+				</div>
+				<div class="stat-item">
+					<span class="label">Total Agents:</span>
+					<span class="value">{{ stats().total }}</span>
+				</div>
+				<div class="stat-item plant">
+					<span class="label">Plants:</span>
+					<span class="value">{{ stats().plants }}</span>
+				</div>
+				<div class="stat-item herbivore">
+					<span class="label">Herbivores:</span>
+					<span class="value">{{ stats().herbivores }}</span>
+				</div>
+				<div class="stat-item carnivore">
+					<span class="label">Carnivores:</span>
+					<span class="value">{{ stats().carnivores }}</span>
+				</div>
+			</div>
+		</mat-card-content>
+	</mat-card>
+
+	<mat-card class="grid-card">
+		<mat-card-content>
+			<app-grid-view [state]="state()" [gridSize]="gridSize()" />
+		</mat-card-content>
+	</mat-card>
+
+	@if (history().length > 0) {
+		<mat-card class="timeline-card">
+			<mat-card-content>
+				<div class="timeline-controls">
+					<span>History Timeline</span>
+					<mat-slider [min]="0" [max]="maxIteration" [step]="1" [discrete]="true">
+						<input
+							matSliderThumb
+							[(ngModel)]="selectedIteration"
+							(ngModelChange)="onIterationChange($event)"
+						/>
+					</mat-slider>
+					<span>Iteration: {{ selectedIteration }}</span>
+				</div>
+			</mat-card-content>
+		</mat-card>
+	}
+</div>

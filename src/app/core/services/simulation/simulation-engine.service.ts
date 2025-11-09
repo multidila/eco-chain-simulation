@@ -1,11 +1,12 @@
 import { inject, Injectable } from '@angular/core';
+import { BehaviorSubject, Observable } from 'rxjs';
 
-import { Agent, Environment, Sensor, SimulationConfig, SimulationState } from '../../models';
+import { SimulationStatus } from '../../enums';
+import { Agent, Environment, SimulationConfig, SimulationState } from '../../models';
 import { AGENT_FACTORIES } from '../../tokens';
 
 @Injectable()
 export class SimulationEngine {
-	private readonly _sensor = inject(Sensor);
 	private readonly _environment = inject(Environment);
 	private readonly _agentFactories = inject(AGENT_FACTORIES);
 
@@ -14,13 +15,33 @@ export class SimulationEngine {
 		iteration: 0,
 	};
 
-	private _running = false;
+	private readonly _status$ = new BehaviorSubject<SimulationStatus>(SimulationStatus.Stopped);
+	private readonly _stateHistory: SimulationState[] = [];
+
+	public get status$(): Observable<SimulationStatus> {
+		return this._status$.asObservable();
+	}
+
+	public get currentState(): SimulationState {
+		return { ...this._state };
+	}
+
+	public get stateHistory(): ReadonlyArray<SimulationState> {
+		return this._stateHistory;
+	}
 
 	private _shuffle<T>(array: T[]): void {
 		for (let i = array.length - 1; i > 0; i--) {
 			const j = Math.floor(Math.random() * (i + 1));
 			[array[i], array[j]] = [array[j], array[i]];
 		}
+	}
+
+	private _saveStateSnapshot(): void {
+		this._stateHistory.push({
+			agents: new Map(this._state.agents),
+			iteration: this._state.iteration,
+		});
 	}
 
 	public init(config: SimulationConfig): void {
@@ -34,15 +55,23 @@ export class SimulationEngine {
 		});
 	}
 
-	public start(iterations: number): void {
-		this._running = true;
-		for (let i = 0; i < iterations; i++) {
-			this.step();
+	public start(): void {
+		if (this._status$.value === SimulationStatus.Stopped) {
+			this._stateHistory.length = 0;
 		}
+		this._status$.next(SimulationStatus.Running);
+	}
+
+	public pause(): void {
+		this._status$.next(SimulationStatus.Paused);
+	}
+
+	public resume(): void {
+		this._status$.next(SimulationStatus.Running);
 	}
 
 	public stop(): void {
-		this._running = false;
+		this._status$.next(SimulationStatus.Stopped);
 	}
 
 	public reset(): void {
@@ -51,10 +80,12 @@ export class SimulationEngine {
 		}
 		this._state.agents.clear();
 		this._state.iteration = 0;
+		this._stateHistory.length = 0;
+		this._status$.next(SimulationStatus.Stopped);
 	}
 
 	public step(): void {
-		if (!this._running) {
+		if (this._status$.value !== SimulationStatus.Running) {
 			return;
 		}
 		this._state.iteration++;
@@ -62,5 +93,10 @@ export class SimulationEngine {
 		for (const agent of this._state.agents.values()) {
 			agent.behaviorStrategy.act();
 		}
+		this._saveStateSnapshot();
+	}
+
+	public getStateAtIteration(iteration: number): SimulationState | undefined {
+		return this._stateHistory.find((state) => state.iteration === iteration);
 	}
 }
