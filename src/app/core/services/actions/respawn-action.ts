@@ -9,14 +9,15 @@ export class RespawnAction extends BaseActionHandler<LivingAgent> {
 		super();
 	}
 
-	public innerExecute(agent: LivingAgent): void {
+	public execute(agent: LivingAgent): void {
 		if (agent.energyStrategy.energy > 0) {
-			return;
+			return this.nextActionHandler?.execute(agent);
 		}
 		this._environment.removeAgent(agent.id);
 		const newAgent = this._agentFactories.get(agent.type)?.create();
 		if (newAgent) {
 			this._environment.addAgent(newAgent);
 		}
+		return this.nextActionHandler?.execute(agent);
 	}
 }

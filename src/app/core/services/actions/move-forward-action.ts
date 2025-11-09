@@ -5,7 +5,8 @@ export class MoveForwardAction extends BaseActionHandler<Agent> {
 		super();
 	}
 
-	public innerExecute(agent: Agent): void {
+	public execute(agent: Agent): void {
 		this._environment.moveAgent(agent.id);
+		return this.nextActionHandler?.execute(agent);
 	}
 }

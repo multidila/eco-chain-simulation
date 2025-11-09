@@ -5,10 +5,11 @@ export class ReproduceAction extends BaseActionHandler<LivingAgent> {
 		super();
 	}
 
-	public innerExecute(agent: LivingAgent): void {
+	public execute(agent: LivingAgent): void {
 		const offspring = agent.reproductionStrategy.reproduce(agent);
 		if (offspring) {
 			this._environment.addAgent(offspring);
 		}
+		return this.nextActionHandler?.execute(agent);
 	}
 }

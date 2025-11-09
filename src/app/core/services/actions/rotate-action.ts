@@ -9,15 +9,16 @@ export class RotateAction extends BaseActionHandler {
 		super();
 	}
 
-	public innerExecute(agent: Agent): void {
+	public execute(agent: Agent): void {
 		const currentDirection = this._environment.getAgentDirection(agent.id);
 		if (!currentDirection) {
-			return;
+			return this.nextActionHandler?.execute(agent);
 		}
 		const newDirection = this._rotationMap.get(currentDirection);
 		if (!newDirection) {
 			throw new Error(`No rotation mapping found for direction: ${currentDirection}`);
 		}
 		this._environment.rotateAgent(agent.id, newDirection);
+		return this.nextActionHandler?.execute(agent);
 	}
 }

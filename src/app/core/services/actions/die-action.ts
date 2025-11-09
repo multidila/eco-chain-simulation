@@ -5,9 +5,10 @@ export class DieAction extends BaseActionHandler<LivingAgent> {
 		super();
 	}
 
-	public innerExecute(agent: LivingAgent): void {
-		if (agent.energyStrategy.energy <= 0) {
-			this._environment.removeAgent(agent.id);
+	public execute(agent: LivingAgent): void {
+		if (agent.energyStrategy.energy > 0) {
+			return this.nextActionHandler?.execute(agent);
 		}
+		this._environment.removeAgent(agent.id);
 	}
 }

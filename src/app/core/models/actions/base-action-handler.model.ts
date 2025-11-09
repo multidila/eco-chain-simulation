@@ -9,12 +9,5 @@ export abstract class BaseActionHandler<TAgent extends Agent = Agent> implements
 		return this.nextActionHandler;
 	}
 
-	protected abstract innerExecute(agent: TAgent): void;
-
-	public execute(agent: TAgent): void {
-		this.innerExecute(agent);
-		if (this.nextActionHandler) {
-			this.nextActionHandler.execute(agent);
-		}
-	}
+	public abstract execute(agent: TAgent): void;
 }

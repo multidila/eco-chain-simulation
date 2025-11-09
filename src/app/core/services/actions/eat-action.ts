@@ -10,10 +10,10 @@ export class EatAction extends BaseActionHandler<LivingAgent> {
 		super();
 	}
 
-	public innerExecute(agent: LivingAgent): void {
+	public execute(agent: LivingAgent): void {
 		const agentsAhead = this._environment.getAgentsAhead(agent.id);
 		if (!agentsAhead.length) {
-			return;
+			return this.nextActionHandler?.execute(agent);
 		}
 		const targetAgents = agentsAhead.filter(
 			(targetAgent) => this._foodChain.get(agent.type)?.has(targetAgent.type) ?? false,
@@ -23,5 +23,6 @@ export class EatAction extends BaseActionHandler<LivingAgent> {
 			agent.energyStrategy.addEnergy(energyGained);
 			this._environment.removeAgent(targetAgent.id);
 		}
+		return this.nextActionHandler?.execute(agent);
 	}
 }
