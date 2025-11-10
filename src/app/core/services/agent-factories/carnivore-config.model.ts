@@ -1,5 +1,6 @@
 import { Injectable, InjectionToken } from '@angular/core';
 
+import { AgentType } from '../../enums';
 import { Action, LivingAgent } from '../../models';
 import { EnergyThresholdReproductionStrategyConfig } from '../reproduction-strategies';
 
@@ -19,6 +20,8 @@ export class CarnivoreConfig {
 
 	public reproduction!: EnergyThresholdReproductionStrategyConfig;
 
+	public nutrition!: Record<AgentType, number>;
+
 	private constructor() {}
 
 	public static get instance(): CarnivoreConfig {
@@ -28,7 +31,7 @@ export class CarnivoreConfig {
 		return CarnivoreConfig._instance;
 	}
 
-	public set(config: Partial<Pick<CarnivoreConfig, 'energy' | 'behavior' | 'reproduction'>>): void {
+	public set(config: Partial<Pick<CarnivoreConfig, 'energy' | 'behavior' | 'reproduction' | 'nutrition'>>): void {
 		if (config.energy) {
 			this.energy = { ...this.energy, ...config.energy };
 		}
@@ -37,6 +40,9 @@ export class CarnivoreConfig {
 		}
 		if (config.reproduction) {
 			this.reproduction = { ...this.reproduction, ...config.reproduction };
+		}
+		if (config.nutrition) {
+			this.nutrition = { ...this.nutrition, ...config.nutrition };
 		}
 	}
 }

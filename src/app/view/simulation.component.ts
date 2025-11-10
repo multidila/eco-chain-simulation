@@ -60,6 +60,7 @@ export class SimulationComponent implements OnInit, OnDestroy {
 				threshold: params.agents.herbivore.reproduction.threshold,
 				shareRate: params.agents.herbivore.reproduction.shareRate,
 			},
+			nutrition: params.agents.herbivore.nutrition,
 		});
 		this._carnivoreConfig.set({
 			energy: {
@@ -71,6 +72,7 @@ export class SimulationComponent implements OnInit, OnDestroy {
 				threshold: params.agents.carnivore.reproduction.threshold,
 				shareRate: params.agents.carnivore.reproduction.shareRate,
 			},
+			nutrition: params.agents.carnivore.nutrition,
 		});
 	}
 

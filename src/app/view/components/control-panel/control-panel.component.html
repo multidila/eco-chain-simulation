@@ -139,6 +139,20 @@
 									/>
 								</mat-form-field>
 							</div>
+
+							<mat-divider />
+
+							<div class="param-group">
+								<div class="group-label">Nutrition</div>
+								<mat-form-field>
+									<mat-label>Energy from Plant</mat-label>
+									<input
+										matInput
+										type="number"
+										[(ngModel)]="params().agents.herbivore.nutrition.PLANT"
+									/>
+								</mat-form-field>
+							</div>
 						</div>
 					</mat-expansion-panel>
 
@@ -201,6 +215,20 @@
 										type="number"
 										step="0.1"
 										[(ngModel)]="params().agents.carnivore.reproduction.shareRate"
+									/>
+								</mat-form-field>
+							</div>
+
+							<mat-divider />
+
+							<div class="param-group">
+								<div class="group-label">Nutrition</div>
+								<mat-form-field>
+									<mat-label>Energy from Herbivore</mat-label>
+									<input
+										matInput
+										type="number"
+										[(ngModel)]="params().agents.carnivore.nutrition.HERBIVORE"
 									/>
 								</mat-form-field>
 							</div>

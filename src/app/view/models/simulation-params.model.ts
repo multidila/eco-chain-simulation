@@ -1,3 +1,5 @@
+import { AgentType } from '../../core/enums';
+
 export interface SimulationConfigParams {
 	iterations: number;
 	delay: number;
@@ -19,6 +21,8 @@ export interface AgentReproductionParams {
 	shareRate: number;
 }
 
+export type AgentNutritionParams = Partial<Record<AgentType, number>>;
+
 export interface PlantParams {
 	count: number;
 	energy: Omit<AgentEnergyParams, 'metabolismRate'>;
@@ -28,12 +32,14 @@ export interface HerbivoreParams {
 	count: number;
 	energy: AgentEnergyParams;
 	reproduction: AgentReproductionParams;
+	nutrition: AgentNutritionParams;
 }
 
 export interface CarnivoreParams {
 	count: number;
 	energy: AgentEnergyParams;
 	reproduction: AgentReproductionParams;
+	nutrition: AgentNutritionParams;
 }
 
 export interface AgentsParams {

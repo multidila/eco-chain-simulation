@@ -1,3 +1,4 @@
+import { AgentType } from '../../core/enums';
 import { SimulationParams } from '../models/simulation-params.model';
 
 export const DEFAULT_SIMULATION_PARAMS: SimulationParams = {
@@ -9,11 +10,17 @@ export const DEFAULT_SIMULATION_PARAMS: SimulationParams = {
 			count: 50,
 			energy: { initial: 50, max: 100, metabolismRate: 2 },
 			reproduction: { threshold: 0.9, shareRate: 0.5 },
+			nutrition: {
+				[AgentType.Plant]: 20,
+			},
 		},
 		carnivore: {
 			count: 25,
 			energy: { initial: 75, max: 150, metabolismRate: 1 },
 			reproduction: { threshold: 0.9, shareRate: 0.5 },
+			nutrition: {
+				[AgentType.Herbivore]: 30,
+			},
 		},
 	},
 };

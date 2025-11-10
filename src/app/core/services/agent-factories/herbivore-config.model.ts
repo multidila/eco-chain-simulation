@@ -1,5 +1,6 @@
 import { Injectable, InjectionToken } from '@angular/core';
 
+import { AgentType } from '../../enums';
 import { Action, LivingAgent } from '../../models';
 import { EnergyThresholdReproductionStrategyConfig } from '../reproduction-strategies';
 
@@ -19,6 +20,8 @@ export class HerbivoreConfig {
 
 	public reproduction!: EnergyThresholdReproductionStrategyConfig;
 
+	public nutrition!: Record<AgentType, number>;
+
 	private constructor() {}
 
 	public static get instance(): HerbivoreConfig {
@@ -28,7 +31,7 @@ export class HerbivoreConfig {
 		return HerbivoreConfig._instance;
 	}
 
-	public set(config: Partial<Pick<HerbivoreConfig, 'energy' | 'behavior' | 'reproduction'>>): void {
+	public set(config: Partial<Pick<HerbivoreConfig, 'energy' | 'behavior' | 'reproduction' | 'nutrition'>>): void {
 		if (config.energy) {
 			this.energy = { ...this.energy, ...config.energy };
 		}
@@ -37,6 +40,9 @@ export class HerbivoreConfig {
 		}
 		if (config.reproduction) {
 			this.reproduction = { ...this.reproduction, ...config.reproduction };
+		}
+		if (config.nutrition) {
+			this.nutrition = { ...this.nutrition, ...config.nutrition };
 		}
 	}
 }
