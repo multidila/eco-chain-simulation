@@ -1,14 +1,15 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
-import { interval, Subject, takeUntil, takeWhile } from 'rxjs';
+import { interval, Subject, Subscription, takeUntil } from 'rxjs';
 
-import { SimulationStatus } from '../core/enums';
-import { SimulationState } from '../core/models';
-import { SimulationEngine } from '../core/services';
+import { AgentType, SimulationStatus } from '../core/enums';
+import { SimulationConfig, SimulationState } from '../core/models';
+import { Grid, GridEnvironmentService, SimulationEngine } from '../core/services';
 import { ControlPanelComponent } from './components/control-panel/control-panel.component';
 import { SimulationVisualizationComponent } from './components/simulation-visualization/simulation-visualization.component';
 import { DEFAULT_SIMULATION_PARAMS } from './constants';
 import { SimulationParams } from './models/simulation-params.model';
+import type { GridEnvironmentConfig } from '../core/services/environment/grid/grid-environment.service';
 
 @Component({
 	selector: 'app-simulation',
@@ -20,27 +21,79 @@ import { SimulationParams } from './models/simulation-params.model';
 export class SimulationComponent implements OnInit, OnDestroy {
 	private readonly _destroy$ = new Subject<void>();
 	private readonly _simulationEngine = inject(SimulationEngine);
+	private readonly _environment = inject(GridEnvironmentService);
+	private _simulationLoopSub?: Subscription;
 
 	protected readonly status = signal<SimulationStatus>(SimulationStatus.Stopped);
 	protected readonly currentState = signal<SimulationState>({ agents: new Map(), iteration: 0 });
 	protected readonly params = signal<SimulationParams>(DEFAULT_SIMULATION_PARAMS);
+	protected readonly gridSnapshot = signal<Grid>([]);
+
+	protected get initialized(): boolean {
+		return this._simulationEngine.initialized;
+	}
+
+	private _initializeEngine(): void {
+		const config = this._createSimulationConfig(this.params());
+		this._simulationEngine.init(config);
+		this.currentState.set(this._simulationEngine.state);
+		this._updateGridSnapshot();
+	}
+
+	private _createSimulationConfig(params: SimulationParams): SimulationConfig<GridEnvironmentConfig> {
+		return {
+			agents: [
+				{ type: AgentType.Plant, amount: params.agents.plant.count },
+				{ type: AgentType.Herbivore, amount: params.agents.herbivore.count },
+				{ type: AgentType.Carnivore, amount: params.agents.carnivore.count },
+			],
+			environment: {
+				size: params.environment.gridSize,
+			},
+		};
+	}
+
+	private _startSimulationLoop(): void {
+		this._stopSimulationLoop();
+		const iterations = this.params().simulation.iterations;
+
+		this._simulationLoopSub = interval(100)
+			.pipe(takeUntil(this._destroy$))
+			.subscribe(() => {
+				if (this.status() !== SimulationStatus.Running) {
+					return;
+				}
+
+				if (this.currentState().iteration >= iterations) {
+					this._simulationEngine.stop();
+					this._stopSimulationLoop();
+					return;
+				}
+
+				this._simulationEngine.step();
+				this.currentState.set(this._simulationEngine.state);
+				this._updateGridSnapshot();
+			});
+	}
+
+	private _stopSimulationLoop(): void {
+		if (this._simulationLoopSub) {
+			this._simulationLoopSub.unsubscribe();
+			this._simulationLoopSub = undefined;
+		}
+	}
+
+	private _updateGridSnapshot(): void {
+		this.gridSnapshot.set(this._environment.getGridSnapshot());
+	}
 
 	protected onStart(): void {
-		this._simulationEngine.start();
-		const iterations = this.params().simulation.iterations;
-		let currentIteration = 0;
+		if (!this.initialized) {
+			return;
+		}
 
-		interval(100)
-			.pipe(
-				// eslint-disable-next-line rxjs/no-ignored-takewhile-value
-				takeWhile(() => currentIteration < iterations && this.status() === SimulationStatus.Running, true),
-				takeUntil(this._destroy$),
-			)
-			.subscribe(() => {
-				this._simulationEngine.step();
-				this.currentState.set(this._simulationEngine.currentState);
-				currentIteration++;
-			});
+		this._simulationEngine.start();
+		this._startSimulationLoop();
 	}
 
 	protected onPause(): void {
@@ -52,11 +105,24 @@ export class SimulationComponent implements OnInit, OnDestroy {
 	}
 
 	protected onStop(): void {
+		this._stopSimulationLoop();
 		this._simulationEngine.stop();
+	}
+
+	protected onInitialize(): void {
+		this._stopSimulationLoop();
+		this._initializeEngine();
+	}
+
+	protected onReinitialize(): void {
+		this._stopSimulationLoop();
+		this._initializeEngine();
 	}
 
 	protected onParamsChange(params: SimulationParams): void {
 		this.params.set(params);
+		this._stopSimulationLoop();
+		this.gridSnapshot.set([]);
 	}
 
 	public ngOnInit(): void {
@@ -66,6 +132,7 @@ export class SimulationComponent implements OnInit, OnDestroy {
 	}
 
 	public ngOnDestroy(): void {
+		this._stopSimulationLoop();
 		this._destroy$.next();
 		this._destroy$.complete();
 	}

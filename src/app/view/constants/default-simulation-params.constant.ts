@@ -1,7 +1,7 @@
 import { SimulationParams } from '../models/simulation-params.model';
 
 export const DEFAULT_SIMULATION_PARAMS: SimulationParams = {
-	simulation: { iterations: 1000 },
+	simulation: { iterations: 50 },
 	environment: { gridSize: 50, seed: 42 },
 	agents: {
 		plant: { count: 100, energy: { initial: 100, max: 100 } },

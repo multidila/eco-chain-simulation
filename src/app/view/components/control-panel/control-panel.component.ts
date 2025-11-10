@@ -35,11 +35,14 @@ export class ControlPanelComponent {
 
 	public readonly status = input.required<SimulationStatus>();
 	public readonly params = input.required<SimulationParams>();
+	public readonly initialized = input.required<boolean>();
 
 	@Output() public readonly startSimulation = new EventEmitter<void>();
 	@Output() public readonly pauseSimulation = new EventEmitter<void>();
 	@Output() public readonly resumeSimulation = new EventEmitter<void>();
 	@Output() public readonly stopSimulation = new EventEmitter<void>();
+	@Output() public readonly initializeSimulation = new EventEmitter<void>();
+	@Output() public readonly reinitializeSimulation = new EventEmitter<void>();
 	@Output() public readonly paramsChange = new EventEmitter<SimulationParams>();
 
 	protected get isRunning(): boolean {
@@ -52,6 +55,14 @@ export class ControlPanelComponent {
 
 	protected get isStopped(): boolean {
 		return this.status() === SimulationStatus.Stopped;
+	}
+
+	protected get isInitialized(): boolean {
+		return this.initialized();
+	}
+
+	protected get canReinitialize(): boolean {
+		return this.isStopped && this.isInitialized;
 	}
 
 	protected onStart(): void {
@@ -68,5 +79,13 @@ export class ControlPanelComponent {
 
 	protected onStop(): void {
 		this.stopSimulation.emit();
+	}
+
+	protected onInitialize(): void {
+		this.initializeSimulation.emit();
+	}
+
+	protected onReinitialize(): void {
+		this.reinitializeSimulation.emit();
 	}
 }

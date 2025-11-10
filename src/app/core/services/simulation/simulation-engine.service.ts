@@ -18,11 +18,17 @@ export class SimulationEngine {
 	private readonly _status$ = new BehaviorSubject<SimulationStatus>(SimulationStatus.Stopped);
 	private readonly _stateHistory: SimulationState[] = [];
 
+	private _initialized = false;
+
 	public get status$(): Observable<SimulationStatus> {
 		return this._status$.asObservable();
 	}
 
-	public get currentState(): SimulationState {
+	public get initialized(): boolean {
+		return this._initialized;
+	}
+
+	public get state(): SimulationState {
 		return { ...this._state };
 	}
 
@@ -44,15 +50,19 @@ export class SimulationEngine {
 		});
 	}
 
-	public init(config: SimulationConfig): void {
+	public init<TEnvironmentConfig = unknown>(config: SimulationConfig<TEnvironmentConfig>): void {
+		this._environment.init(config.environment);
 		this.reset();
 		config.agents.forEach((agentConfig) => {
-			const agent = this._agentFactories.get(agentConfig.type)?.create();
-			if (agent) {
-				this._state.agents.set(agent.id, agent);
-				this._environment.addAgent(agent);
+			for (let i = 0; i < agentConfig.amount; i++) {
+				const agent = this._agentFactories.get(agentConfig.type)?.create();
+				if (agent) {
+					this._state.agents.set(agent.id, agent);
+					this._environment.addAgent(agent);
+				}
 			}
 		});
+		this._initialized = true;
 	}
 
 	public start(): void {
@@ -82,6 +92,7 @@ export class SimulationEngine {
 		this._state.iteration = 0;
 		this._stateHistory.length = 0;
 		this._status$.next(SimulationStatus.Stopped);
+		this._initialized = false;
 	}
 
 	public step(): void {

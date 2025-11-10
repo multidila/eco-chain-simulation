@@ -5,7 +5,7 @@ import { Action, AgentFactory, LivingAgent } from '../../models';
 import { ActionChainBehaviorStrategy } from '../behavior-strategies';
 import { ConstantEnergyStrategy } from '../energy-strategies/constant-energy-strategy';
 
-const PLANT_CONFIG = new InjectionToken<PlantConfig>('PLANT_CONFIG');
+export const PLANT_CONFIG = new InjectionToken<PlantConfig>('PLANT_CONFIG');
 
 export interface PlantConfig {
 	energy: {

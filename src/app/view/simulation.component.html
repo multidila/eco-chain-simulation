@@ -7,17 +7,16 @@
 		<app-control-panel
 			[status]="status()"
 			[params]="params()"
+			[initialized]="initialized"
 			(startSimulation)="onStart()"
 			(pauseSimulation)="onPause()"
 			(resumeSimulation)="onResume()"
 			(stopSimulation)="onStop()"
+			(initializeSimulation)="onInitialize()"
+			(reinitializeSimulation)="onReinitialize()"
 			(paramsChange)="onParamsChange($event)"
 		/>
 
-		<app-simulation-visualization
-			[state]="currentState()"
-			[gridSize]="params().environment.gridSize"
-			[history]="[]"
-		/>
+		<app-simulation-visualization [state]="currentState()" [grid]="gridSnapshot()" [history]="[]" />
 	</div>
 </div>

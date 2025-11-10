@@ -5,7 +5,13 @@
 
 	<mat-card-content>
 		<div class="control-buttons">
-			@if (isStopped) {
+			@if (!isInitialized) {
+				<button type="button" mat-raised-button color="primary" (click)="onInitialize()">INITIALIZE</button>
+			}
+			@if (canReinitialize) {
+				<button type="button" mat-raised-button color="accent" (click)="onReinitialize()">REINITIALIZE</button>
+			}
+			@if (isStopped && isInitialized) {
 				<button type="button" mat-raised-button color="primary" (click)="onStart()">START</button>
 			}
 			@if (isRunning) {

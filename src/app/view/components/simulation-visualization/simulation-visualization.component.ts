@@ -6,6 +6,7 @@ import { MatSliderModule } from '@angular/material/slider';
 
 import { AgentType } from '../../../core/enums';
 import { SimulationState } from '../../../core/models';
+import { Grid } from '../../../core/services/environment/grid/grid.model';
 import { GridViewComponent } from '../grid-view/grid-view.component';
 
 @Component({
@@ -48,7 +49,7 @@ export class SimulationVisualizationComponent {
 	});
 
 	public readonly state = input.required<SimulationState>();
-	public readonly gridSize = input.required<number>();
+	public readonly grid = input.required<Grid>();
 	public readonly history = input.required<ReadonlyArray<SimulationState>>();
 
 	protected get maxIteration(): number {

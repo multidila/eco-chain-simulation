@@ -5,6 +5,7 @@ export interface SimulationAgentConfig {
 	amount: number;
 }
 
-export interface SimulationConfig {
+export interface SimulationConfig<TEnvironmentConfig = unknown> {
 	agents: SimulationAgentConfig[];
+	environment: TEnvironmentConfig;
 }

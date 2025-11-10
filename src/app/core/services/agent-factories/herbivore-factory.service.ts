@@ -1,4 +1,4 @@
-import { inject, Injectable, InjectionToken } from '@angular/core';
+import { inject, Injectable, InjectionToken, Injector } from '@angular/core';
 
 import { AgentType } from '../../enums';
 import { Action, AgentFactory, LivingAgent } from '../../models';
@@ -9,7 +9,7 @@ import {
 	EnergyThresholdReproductionStrategyConfig,
 } from '../reproduction-strategies';
 
-const HERBIVORE_CONFIG = new InjectionToken<HerbivoreConfig>('HERBIVORE_CONFIG');
+export const HERBIVORE_CONFIG = new InjectionToken<HerbivoreConfig>('HERBIVORE_CONFIG');
 
 export interface HerbivoreConfig {
 	energy: {
@@ -28,6 +28,7 @@ export class HerbivoreFactory extends AgentFactory<LivingAgent> {
 	private static _counter = 0;
 
 	private readonly _config = inject(HERBIVORE_CONFIG);
+	private readonly _injector = inject(Injector);
 
 	public create(): LivingAgent {
 		return {
@@ -40,7 +41,7 @@ export class HerbivoreFactory extends AgentFactory<LivingAgent> {
 				this._config.energy.metabolismRate,
 			),
 			behaviorStrategy: new ActionChainBehaviorStrategy(this._config.behavior.actions),
-			reproductionStrategy: new EnergyThresholdReproductionStrategy(this._config.reproduction),
+			reproductionStrategy: new EnergyThresholdReproductionStrategy(this._config.reproduction, this._injector),
 		};
 	}
 }

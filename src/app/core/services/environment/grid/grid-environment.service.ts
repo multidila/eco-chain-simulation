@@ -29,6 +29,10 @@ export class GridEnvironmentService extends Environment<GridEnvironmentConfig> {
 		return this._grid.length;
 	}
 
+	public get grid(): Grid {
+		return this._grid;
+	}
+
 	private _addAgentToPosition(agentId: string, position: GridPosition): void {
 		this._grid[position.y][position.x].agents.push(agentId);
 	}
@@ -40,7 +44,9 @@ export class GridEnvironmentService extends Environment<GridEnvironmentConfig> {
 	}
 
 	public init(config: GridEnvironmentConfig): void {
-		this._grid = new Array(config.size).map(() => new Array(config.size).fill({ agents: [] }));
+		this._grid = Array.from({ length: config.size }, () =>
+			Array.from({ length: config.size }, () => ({ agents: [] })),
+		);
 		this._agentStates = new Map<string, AgentState>();
 	}
 
@@ -126,5 +132,9 @@ export class GridEnvironmentService extends Environment<GridEnvironmentConfig> {
 			return;
 		}
 		state.direction = direction;
+	}
+
+	public getGridSnapshot(): Grid {
+		return this._grid?.map((row) => row.map((cell) => ({ agents: [...cell.agents] }))) ?? [];
 	}
 }
