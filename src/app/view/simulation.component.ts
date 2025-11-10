@@ -56,8 +56,9 @@ export class SimulationComponent implements OnInit, OnDestroy {
 	private _startSimulationLoop(): void {
 		this._stopSimulationLoop();
 		const iterations = this.params().simulation.iterations;
+		const delay = this.params().simulation.delay;
 
-		this._simulationLoopSub = interval(100)
+		this._simulationLoopSub = interval(delay)
 			.pipe(takeUntil(this._destroy$))
 			.subscribe(() => {
 				if (this.status() !== SimulationStatus.Running) {

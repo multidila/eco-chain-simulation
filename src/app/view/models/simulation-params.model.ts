@@ -1,5 +1,6 @@
 export interface SimulationConfigParams {
 	iterations: number;
+	delay: number;
 }
 
 export interface EnvironmentParams {
