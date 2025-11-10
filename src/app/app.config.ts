@@ -1,4 +1,4 @@
-import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { APP_INITIALIZER, ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideRouter } from '@angular/router';
 
@@ -47,29 +47,6 @@ export const APP_CONFIG: ApplicationConfig = {
 			useExisting: RandomPositionGenerator,
 		},
 		{
-			provide: PLANT_CONFIG,
-			useValue: {
-				energy: { value: 100 },
-				behavior: { actions: new NoneAction() },
-			} as PlantConfig,
-		},
-		{
-			provide: HERBIVORE_CONFIG,
-			useValue: {
-				energy: { value: 50, maxValue: 100, metabolismRate: 2 },
-				behavior: { actions: new NoneAction() },
-				reproduction: { threshold: 0.9, shareRate: 0.5 },
-			} as HerbivoreConfig,
-		},
-		{
-			provide: CARNIVORE_CONFIG,
-			useValue: {
-				energy: { value: 75, maxValue: 150, metabolismRate: 1 },
-				behavior: { actions: new NoneAction() },
-				reproduction: { threshold: 0.9, shareRate: 0.5 },
-			} as CarnivoreConfig,
-		},
-		{
 			provide: AGENT_FACTORIES,
 			useFactory: (
 				plantFactory: PlantFactory,
@@ -83,6 +60,18 @@ export const APP_CONFIG: ApplicationConfig = {
 				return factories;
 			},
 			deps: [PlantFactory, HerbivoreFactory, CarnivoreFactory],
+		},
+		{
+			provide: APP_INITIALIZER,
+			useFactory:
+				(plantConfig: PlantConfig, herbivoreConfig: HerbivoreConfig, carnivoreConfig: CarnivoreConfig) =>
+				() => {
+					plantConfig.set({ behavior: { actions: new NoneAction() } });
+					herbivoreConfig.set({ behavior: { actions: new NoneAction() } });
+					carnivoreConfig.set({ behavior: { actions: new NoneAction() } });
+				},
+			deps: [PLANT_CONFIG, HERBIVORE_CONFIG, CARNIVORE_CONFIG],
+			multi: true,
 		},
 	],
 };

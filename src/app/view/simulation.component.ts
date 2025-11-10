@@ -5,6 +5,7 @@ import { interval, Subject, Subscription, takeUntil } from 'rxjs';
 import { AgentType, SimulationStatus } from '../core/enums';
 import { SimulationConfig, SimulationState } from '../core/models';
 import { Grid, GridEnvironmentService, SimulationEngine } from '../core/services';
+import { CARNIVORE_CONFIG, HERBIVORE_CONFIG, PLANT_CONFIG } from '../core/services/agent-factories';
 import { ControlPanelComponent } from './components/control-panel/control-panel.component';
 import { SimulationVisualizationComponent } from './components/simulation-visualization/simulation-visualization.component';
 import { DEFAULT_SIMULATION_PARAMS } from './constants';
@@ -22,6 +23,9 @@ export class SimulationComponent implements OnInit, OnDestroy {
 	private readonly _destroy$ = new Subject<void>();
 	private readonly _simulationEngine = inject(SimulationEngine);
 	private readonly _environment = inject(GridEnvironmentService);
+	private readonly _plantConfig = inject(PLANT_CONFIG);
+	private readonly _herbivoreConfig = inject(HERBIVORE_CONFIG);
+	private readonly _carnivoreConfig = inject(CARNIVORE_CONFIG);
 	private _simulationLoopSub?: Subscription;
 
 	protected readonly status = signal<SimulationStatus>(SimulationStatus.Stopped);
@@ -35,9 +39,39 @@ export class SimulationComponent implements OnInit, OnDestroy {
 
 	private _initializeEngine(): void {
 		const config = this._createSimulationConfig(this.params());
+		this._syncAgentParams();
 		this._simulationEngine.init(config);
 		this.currentState.set(this._simulationEngine.state);
 		this._updateGridSnapshot();
+	}
+
+	private _syncAgentParams(): void {
+		const params = this.params();
+		this._plantConfig.set({
+			energy: { value: params.agents.plant.energy.initial },
+		});
+		this._herbivoreConfig.set({
+			energy: {
+				value: params.agents.herbivore.energy.initial,
+				maxValue: params.agents.herbivore.energy.max,
+				metabolismRate: params.agents.herbivore.energy.metabolismRate,
+			},
+			reproduction: {
+				threshold: params.agents.herbivore.reproduction.threshold,
+				shareRate: params.agents.herbivore.reproduction.shareRate,
+			},
+		});
+		this._carnivoreConfig.set({
+			energy: {
+				value: params.agents.carnivore.energy.initial,
+				maxValue: params.agents.carnivore.energy.max,
+				metabolismRate: params.agents.carnivore.energy.metabolismRate,
+			},
+			reproduction: {
+				threshold: params.agents.carnivore.reproduction.threshold,
+				shareRate: params.agents.carnivore.reproduction.shareRate,
+			},
+		});
 	}
 
 	private _createSimulationConfig(params: SimulationParams): SimulationConfig<GridEnvironmentConfig> {
@@ -64,13 +98,10 @@ export class SimulationComponent implements OnInit, OnDestroy {
 				if (this.status() !== SimulationStatus.Running) {
 					return;
 				}
-
 				if (this.currentState().iteration >= iterations) {
-					this._simulationEngine.stop();
-					this._stopSimulationLoop();
+					this.onStop();
 					return;
 				}
-
 				this._simulationEngine.step();
 				this.currentState.set(this._simulationEngine.state);
 				this._updateGridSnapshot();

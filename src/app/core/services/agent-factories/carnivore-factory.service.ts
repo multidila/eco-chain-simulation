@@ -1,47 +1,31 @@
-import { inject, Injectable, InjectionToken, Injector } from '@angular/core';
+import { inject, Injectable, Injector } from '@angular/core';
 
 import { AgentType } from '../../enums';
-import { Action, AgentFactory, LivingAgent } from '../../models';
+import { AgentFactory, LivingAgent } from '../../models';
 import { ActionChainBehaviorStrategy } from '../behavior-strategies';
 import { LivingEnergyStrategy } from '../energy-strategies/living-energy-strategy';
-import {
-	EnergyThresholdReproductionStrategy,
-	EnergyThresholdReproductionStrategyConfig,
-} from '../reproduction-strategies';
-
-export const CARNIVORE_CONFIG = new InjectionToken<CarnivoreConfig>('CARNIVORE_CONFIG');
-
-export interface CarnivoreConfig {
-	energy: {
-		value: number;
-		maxValue: number;
-		metabolismRate: number;
-	};
-	behavior: {
-		actions: Action<LivingAgent>;
-	};
-	reproduction: EnergyThresholdReproductionStrategyConfig;
-}
+import { EnergyThresholdReproductionStrategy } from '../reproduction-strategies';
+import { CarnivoreConfig } from './carnivore-config.model';
 
 @Injectable()
 export class CarnivoreFactory extends AgentFactory<LivingAgent> {
 	private static _counter = 0;
 
-	private readonly _config = inject(CARNIVORE_CONFIG);
 	private readonly _injector = inject(Injector);
 
 	public create(): LivingAgent {
+		const config = CarnivoreConfig.instance;
 		return {
 			id: `carnivore-${CarnivoreFactory._counter++}`,
 			type: AgentType.Carnivore,
 			generation: 0,
 			energyStrategy: new LivingEnergyStrategy(
-				this._config.energy.value,
-				this._config.energy.maxValue,
-				this._config.energy.metabolismRate,
+				config.energy.value,
+				config.energy.maxValue,
+				config.energy.metabolismRate,
 			),
-			behaviorStrategy: new ActionChainBehaviorStrategy(this._config.behavior.actions),
-			reproductionStrategy: new EnergyThresholdReproductionStrategy(this._config.reproduction, this._injector),
+			behaviorStrategy: new ActionChainBehaviorStrategy(config.behavior.actions),
+			reproductionStrategy: new EnergyThresholdReproductionStrategy(config.reproduction, this._injector),
 		};
 	}
 }
