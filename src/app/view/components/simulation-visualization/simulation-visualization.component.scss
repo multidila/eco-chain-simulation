@@ -59,11 +59,15 @@
 
 .grid-card {
 	flex: 1;
-	overflow: hidden;
+	overflow: auto;
 
 	mat-card-content {
 		height: 100%;
-		overflow: auto;
+		padding: 0;
+
+		app-grid-view {
+			margin: 8px;
+		}
 	}
 }
 
