@@ -6,13 +6,25 @@
 					<div class="grid-cell">
 						@for (agent of cell.agents; track agent.id) {
 							@if (isPlant(agent)) {
-								<div class="agent plant" [style.opacity]="getAgentOpacity(agent)"></div>
+								<div
+									class="agent plant"
+									[style.opacity]="getAgentOpacity(agent)"
+									[title]="getAgentTooltip(agent)"
+								></div>
 							}
 							@if (isHerbivore(agent)) {
-								<div class="agent herbivore" [style.opacity]="getAgentOpacity(agent)"></div>
+								<div
+									class="agent herbivore"
+									[style.opacity]="getAgentOpacity(agent)"
+									[title]="getAgentTooltip(agent)"
+								></div>
 							}
 							@if (isCarnivore(agent)) {
-								<div class="agent carnivore" [style.opacity]="getAgentOpacity(agent)"></div>
+								<div
+									class="agent carnivore"
+									[style.opacity]="getAgentOpacity(agent)"
+									[title]="getAgentTooltip(agent)"
+								></div>
 							}
 						}
 					</div>

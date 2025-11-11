@@ -8,6 +8,8 @@ import { Grid } from '../../../core/services/environment/grid/grid.model';
 interface CellAgent {
 	id: string;
 	type: AgentType;
+	age: number;
+	generation: number;
 	energy: number;
 	maxEnergy: number;
 }
@@ -29,7 +31,6 @@ export class GridViewComponent {
 	protected readonly gridData = computed<GridCell[][]>(() => {
 		const state = this.state();
 		const grid = this.grid();
-
 		return grid.map((row, y) =>
 			row.map((cell, x) => ({
 				x,
@@ -49,6 +50,8 @@ export class GridViewComponent {
 			.map((agent) => ({
 				id: agent.id,
 				type: agent.type,
+				age: agent.age,
+				generation: agent.generation,
 				energy: agent.energyStrategy?.energy ?? 0,
 				maxEnergy: agent.energyStrategy?.maxEnergy ?? 100,
 			}));
@@ -59,6 +62,15 @@ export class GridViewComponent {
 			return 1;
 		}
 		return Math.max(0.2, agent.energy / agent.maxEnergy);
+	}
+
+	protected getAgentTooltip(agent: CellAgent): string {
+		return [
+			`ID: ${agent.id}`,
+			`Age: ${agent.age}`,
+			`Generation: ${agent.generation}`,
+			`Energy: ${agent.energy.toFixed(1)}/${agent.maxEnergy}`,
+		].join('\n');
 	}
 
 	protected isPlant(agent: CellAgent): boolean {
