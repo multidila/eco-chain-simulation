@@ -20,7 +20,7 @@ export class CarnivoreConfig {
 
 	public reproduction!: EnergyThresholdReproductionStrategyConfig;
 
-	public nutrition!: Record<AgentType, number>;
+	public nutrition!: Partial<Record<AgentType, number>>;
 
 	private constructor() {}
 

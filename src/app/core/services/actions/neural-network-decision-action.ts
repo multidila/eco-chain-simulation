@@ -1,12 +1,11 @@
 import { ActionType, AgentType } from '../../enums';
-import { Action, Agent, BaseActionHandler, Environment, NeuralNetwork, Sensor, SensorData } from '../../models';
+import { Action, BaseActionHandler, Environment, LivingAgent, NeuralNetwork, Sensor, SensorData } from '../../models';
 
-export class NeuralNetworkDecisionAction extends BaseActionHandler<Agent> {
+export class NeuralNetworkDecisionAction extends BaseActionHandler<LivingAgent> {
 	constructor(
 		private readonly _actions: Map<ActionType, Action>,
 		private readonly _agentMapping: AgentType[],
 		private readonly _actionMapping: ActionType[],
-		private readonly _neuralNetwork: NeuralNetwork,
 		private readonly _sensor: Sensor,
 		private readonly _environment: Environment,
 	) {
@@ -30,17 +29,17 @@ export class NeuralNetworkDecisionAction extends BaseActionHandler<Agent> {
 		return inputs;
 	}
 
-	private _feedForward(inputs: number[]): number[] {
-		this._neuralNetwork.inputs = inputs;
+	private _feedForward(neuralNetwork: NeuralNetwork, inputs: number[]): number[] {
+		neuralNetwork.inputs = inputs;
 		const hiddenOutputs: number[] = [];
-		for (let i = 0; i < this._neuralNetwork.weights.length; i++) {
-			let sum = this._neuralNetwork.biases[i];
+		for (let i = 0; i < neuralNetwork.weights.length; i++) {
+			let sum = neuralNetwork.biases[i];
 			for (let j = 0; j < inputs.length; j++) {
-				sum += inputs[j] * this._neuralNetwork.weights[i][j];
+				sum += inputs[j] * neuralNetwork.weights[i][j];
 			}
 			hiddenOutputs.push(Math.tanh(sum));
 		}
-		this._neuralNetwork.outputs = hiddenOutputs;
+		neuralNetwork.outputs = hiddenOutputs;
 		return hiddenOutputs;
 	}
 
@@ -62,10 +61,14 @@ export class NeuralNetworkDecisionAction extends BaseActionHandler<Agent> {
 		throw new Error('No valid action found in neural network outputs');
 	}
 
-	public execute(agent: Agent): void {
+	public execute(agent: LivingAgent): void {
+		if (!agent.neuralNetwork) {
+			return this.nextActionHandler?.execute(agent);
+		}
 		const sensorData = this._sensor.getSensorData(agent, this._environment);
 		const inputs = this._convertSensorsToInputs(sensorData);
-		const outputs = this._feedForward(inputs);
+		const outputs = this._feedForward(agent.neuralNetwork, inputs);
 		this._selectAction(outputs).execute(agent);
+		return this.nextActionHandler?.execute(agent);
 	}
 }

@@ -2,9 +2,9 @@ import { Agent } from '../agents';
 import { Action } from './action.model';
 
 export abstract class BaseActionHandler<TAgent extends Agent = Agent> implements Action<TAgent> {
-	protected nextActionHandler: Action<TAgent> | null = null;
+	protected nextActionHandler: BaseActionHandler<TAgent> | null = null;
 
-	public setNext(actionHandler: Action<TAgent>): Action<TAgent> {
+	public setNext(actionHandler: BaseActionHandler<TAgent>): BaseActionHandler<TAgent> {
 		this.nextActionHandler = actionHandler;
 		return this.nextActionHandler;
 	}

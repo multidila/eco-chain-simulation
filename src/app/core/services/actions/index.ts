@@ -1,5 +1,6 @@
 export * from './die-action';
 export * from './eat-action';
+export * from './growth-action';
 export * from './metabolize-action';
 export * from './move-forward-action';
 export * from './neural-network-decision-action';

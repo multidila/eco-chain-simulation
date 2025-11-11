@@ -15,6 +15,7 @@ export class PlantFactory extends AgentFactory<LivingAgent> {
 		return {
 			id: `plant-${PlantFactory._counter++}`,
 			type: AgentType.Plant,
+			age: 0,
 			generation: 0,
 			energyStrategy: new ConstantEnergyStrategy(config.energy.value),
 			behaviorStrategy: new ActionChainBehaviorStrategy(config.behavior.actions),

@@ -8,16 +8,16 @@ export const DEFAULT_SIMULATION_PARAMS: SimulationParams = {
 		plant: { count: 100, energy: { initial: 100, max: 100 } },
 		herbivore: {
 			count: 50,
-			energy: { initial: 50, max: 100, metabolismRate: 2 },
-			reproduction: { threshold: 0.9, shareRate: 0.5 },
+			energy: { initial: 50, max: 100, metabolismRate: 5 },
+			reproduction: { threshold: 0.9, shareRate: 0.5, mutationRate: 0.1, mutationStrength: 0.2 },
 			nutrition: {
-				[AgentType.Plant]: 20,
+				[AgentType.Plant]: 15,
 			},
 		},
 		carnivore: {
 			count: 25,
-			energy: { initial: 75, max: 150, metabolismRate: 1 },
-			reproduction: { threshold: 0.9, shareRate: 0.5 },
+			energy: { initial: 75, max: 150, metabolismRate: 3 },
+			reproduction: { threshold: 0.9, shareRate: 0.5, mutationRate: 0.1, mutationStrength: 0.2 },
 			nutrition: {
 				[AgentType.Herbivore]: 30,
 			},

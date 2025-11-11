@@ -19,6 +19,8 @@ export interface AgentEnergyParams {
 export interface AgentReproductionParams {
 	threshold: number;
 	shareRate: number;
+	mutationRate: number;
+	mutationStrength: number;
 }
 
 export type AgentNutritionParams = Partial<Record<AgentType, number>>;

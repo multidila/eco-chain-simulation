@@ -71,7 +71,11 @@ export class GridEnvironmentService extends Environment<GridEnvironmentConfig> {
 		if (distance === 0) {
 			return newPosition;
 		}
-		return this.getNextPosition(newPosition, direction, distance--);
+		return this.getNextPosition(newPosition, direction, distance - 1);
+	}
+
+	public getAllAgents(): Agent[] {
+		return Array.from(this._agentStates.values()).map((state) => state.agent);
 	}
 
 	public getAgentsAt(position: GridPosition): Agent[] {

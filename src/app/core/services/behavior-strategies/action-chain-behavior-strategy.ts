@@ -6,6 +6,8 @@ export class ActionChainBehaviorStrategy<TAgent extends Agent = Agent> extends B
 	}
 
 	public act(): void {
-		this._actionChain.execute(this.agent);
+		if (this.agent) {
+			this._actionChain.execute(this.agent);
+		}
 	}
 }

@@ -59,6 +59,8 @@ export class SimulationComponent implements OnInit, OnDestroy {
 			reproduction: {
 				threshold: params.agents.herbivore.reproduction.threshold,
 				shareRate: params.agents.herbivore.reproduction.shareRate,
+				mutationRate: params.agents.herbivore.reproduction.mutationRate,
+				mutationStrength: params.agents.herbivore.reproduction.mutationStrength,
 			},
 			nutrition: params.agents.herbivore.nutrition,
 		});
@@ -71,6 +73,8 @@ export class SimulationComponent implements OnInit, OnDestroy {
 			reproduction: {
 				threshold: params.agents.carnivore.reproduction.threshold,
 				shareRate: params.agents.carnivore.reproduction.shareRate,
+				mutationRate: params.agents.carnivore.reproduction.mutationRate,
+				mutationStrength: params.agents.carnivore.reproduction.mutationStrength,
 			},
 			nutrition: params.agents.carnivore.nutrition,
 		});

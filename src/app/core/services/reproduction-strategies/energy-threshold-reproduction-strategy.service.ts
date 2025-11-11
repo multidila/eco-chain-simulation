@@ -1,7 +1,7 @@
 import { Inject, Injectable, InjectionToken, Injector } from '@angular/core';
 
 import { AgentType } from '../../enums';
-import { AgentFactory, LivingAgent, ReproductionStrategy } from '../../models';
+import { AgentFactory, LivingAgent, NeuralNetwork, ReproductionStrategy } from '../../models';
 import { AGENT_FACTORIES } from '../../tokens';
 
 export const ENERGY_THRESHOLD_REPRODUCTION_STRATEGY_CONFIG =
@@ -10,6 +10,8 @@ export const ENERGY_THRESHOLD_REPRODUCTION_STRATEGY_CONFIG =
 export interface EnergyThresholdReproductionStrategyConfig {
 	shareRate: number;
 	threshold: number;
+	mutationRate?: number;
+	mutationStrength?: number;
 }
 
 @Injectable()
@@ -25,10 +27,35 @@ export class EnergyThresholdReproductionStrategy<TAgent extends LivingAgent = Li
 	) {}
 
 	private get _agentFactories(): Map<AgentType, AgentFactory> {
-		if (!this._agentFactoriesCache) {
-			this._agentFactoriesCache = this._injector.get(AGENT_FACTORIES);
-		}
+		this._agentFactoriesCache ??= this._injector.get(AGENT_FACTORIES);
 		return this._agentFactoriesCache;
+	}
+
+	private _mutateNeuralNetwork(neuralNetwork: NeuralNetwork): NeuralNetwork {
+		const mutationRate = this._config.mutationRate ?? 0.1; // 10% of weights mutate
+		const mutationStrength = this._config.mutationStrength ?? 0.2; // ±20% change
+		const mutatedWeights = neuralNetwork.weights.map((outputWeights) =>
+			outputWeights.map((weight) => {
+				if (Math.random() < mutationRate) {
+					const mutation = (Math.random() * 2 - 1) * mutationStrength;
+					return weight + mutation;
+				}
+				return weight;
+			}),
+		);
+		const mutatedBiases = neuralNetwork.biases.map((bias) => {
+			if (Math.random() < mutationRate) {
+				const mutation = (Math.random() * 2 - 1) * mutationStrength;
+				return bias + mutation;
+			}
+			return bias;
+		});
+		return {
+			inputs: [],
+			outputs: [],
+			weights: mutatedWeights,
+			biases: mutatedBiases,
+		};
 	}
 
 	public reproduce(parent: TAgent): TAgent | null {
@@ -48,6 +75,12 @@ export class EnergyThresholdReproductionStrategy<TAgent extends LivingAgent = Li
 			return null;
 		}
 		offspringAgent.generation = parent.generation + 1;
+
+		// Inherit and mutate parent's neural network (Lamarckian evolution)
+		if (parent.neuralNetwork) {
+			offspringAgent.neuralNetwork = this._mutateNeuralNetwork(parent.neuralNetwork);
+		}
+
 		offspringAgent.energyStrategy.consumeEnergy(offspringAgent.energyStrategy.energy);
 		offspringAgent.energyStrategy.addEnergy(childEnergy);
 		return offspringAgent;

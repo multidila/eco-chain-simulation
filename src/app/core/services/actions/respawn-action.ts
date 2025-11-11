@@ -18,6 +18,5 @@ export class RespawnAction extends BaseActionHandler<LivingAgent> {
 		if (newAgent) {
 			this._environment.addAgent(newAgent);
 		}
-		return this.nextActionHandler?.execute(agent);
 	}
 }

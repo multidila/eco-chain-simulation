@@ -50,6 +50,14 @@ export class SimulationEngine {
 		});
 	}
 
+	private _syncStateFromEnvironment(): void {
+		const agents = this._environment.getAllAgents();
+		this._state.agents.clear();
+		for (const agent of agents) {
+			this._state.agents.set(agent.id, agent);
+		}
+	}
+
 	public init<TEnvironmentConfig = unknown>(config: SimulationConfig<TEnvironmentConfig>): void {
 		this._environment.init(config.environment);
 		this.reset();
@@ -100,10 +108,18 @@ export class SimulationEngine {
 			return;
 		}
 		this._state.iteration++;
-		this._shuffle(Array.from(this._state.agents.values()));
-		for (const agent of this._state.agents.values()) {
+		// Get agents from environment instead of local state
+		const agentsBefore = this._environment.getAllAgents();
+		console.log(`[Step ${this._state.iteration}] BEFORE: ${agentsBefore.length} agents`);
+		// this._shuffle(agentsBefore);
+		for (const agent of agentsBefore) {
+			agent.behaviorStrategy.setAgent(agent);
 			agent.behaviorStrategy.act();
 		}
+		// Update local state from environment
+		this._syncStateFromEnvironment();
+		const agentsAfter = this._environment.getAllAgents();
+		console.log(`[Step ${this._state.iteration}] AFTER: ${agentsAfter.length} agents`);
 		this._saveStateSnapshot();
 	}
 

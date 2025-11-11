@@ -5,7 +5,7 @@ export class EatAction extends BaseActionHandler<LivingAgent> {
 	constructor(
 		private readonly _environment: Environment,
 		private readonly _foodChain: Map<AgentType, Set<AgentType>>,
-		private readonly _energyValues: Map<AgentType, number>,
+		private readonly _getEnergyValue: (agentType: AgentType) => number,
 	) {
 		super();
 	}
@@ -19,7 +19,7 @@ export class EatAction extends BaseActionHandler<LivingAgent> {
 			(targetAgent) => this._foodChain.get(agent.type)?.has(targetAgent.type) ?? false,
 		);
 		for (const targetAgent of targetAgents) {
-			const energyGained = this._energyValues.get(targetAgent.type) ?? 0;
+			const energyGained = this._getEnergyValue(targetAgent.type);
 			agent.energyStrategy.addEnergy(energyGained);
 			this._environment.removeAgent(targetAgent.id);
 		}

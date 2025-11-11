@@ -138,6 +138,24 @@
 										[(ngModel)]="params().agents.herbivore.reproduction.shareRate"
 									/>
 								</mat-form-field>
+								<mat-form-field>
+									<mat-label>Mutation Rate</mat-label>
+									<input
+										matInput
+										type="number"
+										step="0.01"
+										[(ngModel)]="params().agents.herbivore.reproduction.mutationRate"
+									/>
+								</mat-form-field>
+								<mat-form-field>
+									<mat-label>Mutation Strength</mat-label>
+									<input
+										matInput
+										type="number"
+										step="0.01"
+										[(ngModel)]="params().agents.herbivore.reproduction.mutationStrength"
+									/>
+								</mat-form-field>
 							</div>
 
 							<mat-divider />
@@ -215,6 +233,24 @@
 										type="number"
 										step="0.1"
 										[(ngModel)]="params().agents.carnivore.reproduction.shareRate"
+									/>
+								</mat-form-field>
+								<mat-form-field>
+									<mat-label>Mutation Rate</mat-label>
+									<input
+										matInput
+										type="number"
+										step="0.01"
+										[(ngModel)]="params().agents.carnivore.reproduction.mutationRate"
+									/>
+								</mat-form-field>
+								<mat-form-field>
+									<mat-label>Mutation Strength</mat-label>
+									<input
+										matInput
+										type="number"
+										step="0.01"
+										[(ngModel)]="params().agents.carnivore.reproduction.mutationStrength"
 									/>
 								</mat-form-field>
 							</div>
