@@ -16,6 +16,7 @@
 	.stats {
 		display: flex;
 		flex-direction: row;
+		flex-wrap: wrap;
 		gap: 12px;
 
 		.stat-item {
@@ -47,11 +48,34 @@
 			}
 
 			&.herbivore {
-				background-color: #fff9c4;
+				background-color: #bbdefb;
 			}
 
 			&.carnivore {
 				background-color: #ffcdd2;
+			}
+		}
+
+		.timeline-controls {
+			flex-basis: 100%;
+			display: flex;
+			flex-direction: column;
+
+			.timeline-label {
+				font-weight: 600;
+				font-size: 14px;
+				color: #333;
+			}
+
+			mat-slider {
+				width: 100%;
+			}
+
+			.iteration-display {
+				text-align: center;
+				font-weight: 500;
+				font-size: 14px;
+				color: #666;
 			}
 		}
 	}
@@ -67,18 +91,6 @@
 
 		app-grid-view {
 			margin: 8px;
-		}
-	}
-}
-
-.timeline-card {
-	.timeline-controls {
-		display: flex;
-		align-items: center;
-		gap: 16px;
-
-		mat-slider {
-			flex: 1;
 		}
 	}
 }

@@ -9,14 +9,11 @@ import { AGENT_FACTORIES } from '../../tokens';
 export class SimulationEngine {
 	private readonly _environment = inject(Environment);
 	private readonly _agentFactories = inject(AGENT_FACTORIES);
-
 	private readonly _state: SimulationState = {
 		agents: new Map<string, Agent>(),
 		iteration: 0,
 	};
-
 	private readonly _status$ = new BehaviorSubject<SimulationStatus>(SimulationStatus.Stopped);
-	private readonly _stateHistory: SimulationState[] = [];
 
 	private _initialized = false;
 
@@ -30,24 +27,6 @@ export class SimulationEngine {
 
 	public get state(): SimulationState {
 		return { ...this._state };
-	}
-
-	public get stateHistory(): ReadonlyArray<SimulationState> {
-		return this._stateHistory;
-	}
-
-	private _shuffle<T>(array: T[]): void {
-		for (let i = array.length - 1; i > 0; i--) {
-			const j = Math.floor(Math.random() * (i + 1));
-			[array[i], array[j]] = [array[j], array[i]];
-		}
-	}
-
-	private _saveStateSnapshot(): void {
-		this._stateHistory.push({
-			agents: new Map(this._state.agents),
-			iteration: this._state.iteration,
-		});
 	}
 
 	private _syncStateFromEnvironment(): void {
@@ -74,9 +53,6 @@ export class SimulationEngine {
 	}
 
 	public start(): void {
-		if (this._status$.value === SimulationStatus.Stopped) {
-			this._stateHistory.length = 0;
-		}
 		this._status$.next(SimulationStatus.Running);
 	}
 
@@ -98,7 +74,6 @@ export class SimulationEngine {
 		}
 		this._state.agents.clear();
 		this._state.iteration = 0;
-		this._stateHistory.length = 0;
 		this._status$.next(SimulationStatus.Stopped);
 		this._initialized = false;
 	}
@@ -108,22 +83,11 @@ export class SimulationEngine {
 			return;
 		}
 		this._state.iteration++;
-		// Get agents from environment instead of local state
-		const agentsBefore = this._environment.getAllAgents();
-		console.log(`[Step ${this._state.iteration}] BEFORE: ${agentsBefore.length} agents`);
-		// this._shuffle(agentsBefore);
-		for (const agent of agentsBefore) {
+		const agents = this._environment.getAllAgents();
+		for (const agent of agents) {
 			agent.behaviorStrategy.setAgent(agent);
 			agent.behaviorStrategy.act();
 		}
-		// Update local state from environment
 		this._syncStateFromEnvironment();
-		const agentsAfter = this._environment.getAllAgents();
-		console.log(`[Step ${this._state.iteration}] AFTER: ${agentsAfter.length} agents`);
-		this._saveStateSnapshot();
-	}
-
-	public getStateAtIteration(iteration: number): SimulationState | undefined {
-		return this._stateHistory.find((state) => state.iteration === iteration);
 	}
 }

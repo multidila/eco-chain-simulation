@@ -1,13 +1,13 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, input } from '@angular/core';
+import { Component, computed, effect, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatSliderModule } from '@angular/material/slider';
 
 import { AgentType } from '../../../core/enums';
-import { SimulationState } from '../../../core/models';
-import { Grid } from '../../../core/services/environment/grid/grid.model';
-import { GridViewComponent } from '../grid-view/grid-view.component';
+import { Grid } from '../../../core/services';
+import { SimulationStateView } from '../../models';
+import { GridViewComponent } from '../grid-view';
 
 @Component({
 	selector: 'app-simulation-visualization',
@@ -17,10 +17,30 @@ import { GridViewComponent } from '../grid-view/grid-view.component';
 	styleUrl: './simulation-visualization.component.scss',
 })
 export class SimulationVisualizationComponent {
-	protected selectedIteration = 0;
+	private _userInteractedWithSlider = false;
+
+	protected selectedIteration = signal(0);
+
+	protected readonly displayedState = computed(() => {
+		if (this.stateHistory().length > 0) {
+			const index = this.selectedIteration();
+			const historyState = this.stateHistory()[index];
+			return historyState || this.state();
+		}
+		return this.state();
+	});
+
+	protected readonly displayedGrid = computed(() => {
+		if (this.gridHistory().length > 0) {
+			const index = this.selectedIteration();
+			const historyGrid = this.gridHistory()[index];
+			return historyGrid || this.grid();
+		}
+		return this.grid();
+	});
 
 	protected readonly stats = computed(() => {
-		const agents = this.state().agents;
+		const agents = this.displayedState().agents;
 		let plantCount = 0;
 		let herbivoreCount = 0;
 		let carnivoreCount = 0;
@@ -40,7 +60,7 @@ export class SimulationVisualizationComponent {
 		}
 
 		return {
-			iteration: this.state().iteration,
+			iteration: this.displayedState().iteration,
 			total: agents.size,
 			plants: plantCount,
 			herbivores: herbivoreCount,
@@ -48,15 +68,42 @@ export class SimulationVisualizationComponent {
 		};
 	});
 
-	public readonly state = input.required<SimulationState>();
 	public readonly grid = input.required<Grid>();
-	public readonly history = input.required<ReadonlyArray<SimulationState>>();
+	public readonly state = input.required<SimulationStateView>();
+	public readonly gridHistory = input.required<ReadonlyArray<Grid>>();
+	public readonly stateHistory = input.required<ReadonlyArray<SimulationStateView>>();
 
-	protected get maxIteration(): number {
-		return this.history().length > 0 ? this.history().length - 1 : 0;
+	constructor() {
+		effect(
+			() => {
+				const historyLength = this.stateHistory().length;
+				if (!this._userInteractedWithSlider && historyLength > 0) {
+					this.selectedIteration.set(historyLength - 1);
+				}
+			},
+			{ allowSignalWrites: true },
+		);
 	}
 
-	protected onIterationChange(iteration: number): void {
-		this.selectedIteration = iteration;
+	protected get maxIteration(): number {
+		return this.stateHistory().length;
+	}
+
+	protected get displayIteration(): number {
+		return this.selectedIteration() + 1;
+	}
+
+	protected get hasHistory(): boolean {
+		return this.stateHistory().length > 0;
+	}
+
+	protected onIterationChange(value: number): void {
+		this._userInteractedWithSlider = true;
+		const index = value - 1;
+		this.selectedIteration.set(index);
+		const isAtLatest = index >= this.stateHistory().length - 1;
+		if (isAtLatest) {
+			this._userInteractedWithSlider = false;
+		}
 	}
 }

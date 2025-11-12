@@ -7,7 +7,7 @@
 			<div class="stats">
 				<div class="stat-item">
 					<span class="label">Iteration:</span>
-					<span class="value">{{ stats().iteration }}</span>
+					<span class="value">{{ stats().iteration + 1 }}</span>
 				</div>
 				<div class="stat-item">
 					<span class="label">Total Agents:</span>
@@ -25,31 +25,27 @@
 					<span class="label">Carnivores:</span>
 					<span class="value">{{ stats().carnivores }}</span>
 				</div>
+
+				@if (hasHistory) {
+					<div class="timeline-controls">
+						<span class="timeline-label">History Timeline</span>
+						<mat-slider [min]="1" [max]="maxIteration" [step]="1" [discrete]="true">
+							<input
+								matSliderThumb
+								[ngModel]="displayIteration"
+								(ngModelChange)="onIterationChange($event)"
+							/>
+						</mat-slider>
+						<span class="iteration-display">{{ displayIteration }} / {{ maxIteration }}</span>
+					</div>
+				}
 			</div>
 		</mat-card-content>
 	</mat-card>
 
 	<mat-card class="grid-card">
 		<mat-card-content>
-			<app-grid-view [state]="state()" [grid]="grid()" />
+			<app-grid-view [state]="displayedState()" [grid]="displayedGrid()" />
 		</mat-card-content>
 	</mat-card>
-
-	@if (history().length > 0) {
-		<mat-card class="timeline-card">
-			<mat-card-content>
-				<div class="timeline-controls">
-					<span>History Timeline</span>
-					<mat-slider [min]="0" [max]="maxIteration" [step]="1" [discrete]="true">
-						<input
-							matSliderThumb
-							[(ngModel)]="selectedIteration"
-							(ngModelChange)="onIterationChange($event)"
-						/>
-					</mat-slider>
-					<span>Iteration: {{ selectedIteration }}</span>
-				</div>
-			</mat-card-content>
-		</mat-card>
-	}
 </div>

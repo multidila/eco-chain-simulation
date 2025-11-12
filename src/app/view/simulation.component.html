@@ -17,6 +17,11 @@
 			(paramsChange)="onParamsChange($event)"
 		/>
 
-		<app-simulation-visualization [state]="currentState()" [grid]="gridSnapshot()" [history]="[]" />
+		<app-simulation-visualization
+			[grid]="gridSnapshot()"
+			[state]="currentState()"
+			[gridHistory]="gridHistory()"
+			[stateHistory]="stateHistory()"
+		/>
 	</div>
 </div>

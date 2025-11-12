@@ -7,7 +7,6 @@ export interface SimulationConfigParams {
 
 export interface EnvironmentParams {
 	gridSize: number;
-	seed: number;
 }
 
 export interface AgentEnergyParams {

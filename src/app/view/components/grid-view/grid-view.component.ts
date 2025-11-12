@@ -2,22 +2,13 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, input } from '@angular/core';
 
 import { AgentType } from '../../../core/enums';
-import { LivingAgent, SimulationState } from '../../../core/models';
-import { Grid } from '../../../core/services/environment/grid/grid.model';
-
-interface CellAgent {
-	id: string;
-	type: AgentType;
-	age: number;
-	generation: number;
-	energy: number;
-	maxEnergy: number;
-}
+import { Grid } from '../../../core/services';
+import { AgentView, LivingAgentView, SimulationStateView } from '../../models';
 
 interface GridCell {
 	x: number;
 	y: number;
-	agents: CellAgent[];
+	agents: AgentView[];
 }
 
 @Component({
@@ -40,48 +31,41 @@ export class GridViewComponent {
 		);
 	});
 
-	public readonly state = input.required<SimulationState>();
+	public readonly state = input.required<SimulationStateView>();
 	public readonly grid = input.required<Grid>();
 
-	private _mapCellAgents(agentIds: string[], state: SimulationState): CellAgent[] {
+	private _mapCellAgents(agentIds: string[], state: SimulationStateView): AgentView[] {
 		return agentIds
 			.map((agentId) => state.agents.get(agentId))
-			.filter((agent): agent is LivingAgent => Boolean(agent))
-			.map((agent) => ({
-				id: agent.id,
-				type: agent.type,
-				age: agent.age,
-				generation: agent.generation,
-				energy: agent.energyStrategy?.energy ?? 0,
-				maxEnergy: agent.energyStrategy?.maxEnergy ?? 100,
-			}));
+			.filter(Boolean)
+			.map((agent) => ({ ...agent })) as AgentView[];
 	}
 
-	protected getAgentOpacity(agent: CellAgent): number {
+	protected getAgentOpacity(agent: LivingAgentView): number {
 		if (!agent.maxEnergy) {
 			return 1;
 		}
-		return Math.max(0.2, agent.energy / agent.maxEnergy);
+		return Math.max(0.2, agent.currentEnergy / agent.maxEnergy);
 	}
 
-	protected getAgentTooltip(agent: CellAgent): string {
+	protected getAgentTooltip(agent: LivingAgentView): string {
 		return [
 			`ID: ${agent.id}`,
 			`Age: ${agent.age}`,
 			`Generation: ${agent.generation}`,
-			`Energy: ${agent.energy.toFixed(1)}/${agent.maxEnergy}`,
+			`Energy: ${agent.currentEnergy.toFixed(1)}/${agent.maxEnergy}`,
 		].join('\n');
 	}
 
-	protected isPlant(agent: CellAgent): boolean {
+	protected isPlant(agent: AgentView): agent is LivingAgentView {
 		return agent.type === AgentType.Plant;
 	}
 
-	protected isHerbivore(agent: CellAgent): boolean {
+	protected isHerbivore(agent: AgentView): agent is LivingAgentView {
 		return agent.type === AgentType.Herbivore;
 	}
 
-	protected isCarnivore(agent: CellAgent): boolean {
+	protected isCarnivore(agent: AgentView): agent is LivingAgentView {
 		return agent.type === AgentType.Carnivore;
 	}
 }

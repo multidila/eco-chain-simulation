@@ -2,15 +2,20 @@ import { CommonModule } from '@angular/common';
 import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { interval, Subject, Subscription, takeUntil } from 'rxjs';
 
-import { AgentType, SimulationStatus } from '../core/enums';
-import { SimulationConfig, SimulationState } from '../core/models';
-import { Grid, GridEnvironmentService, SimulationEngine } from '../core/services';
-import { CARNIVORE_CONFIG, HERBIVORE_CONFIG, PLANT_CONFIG } from '../core/services/agent-factories';
-import { ControlPanelComponent } from './components/control-panel/control-panel.component';
-import { SimulationVisualizationComponent } from './components/simulation-visualization/simulation-visualization.component';
+import { ControlPanelComponent, SimulationVisualizationComponent } from './components';
 import { DEFAULT_SIMULATION_PARAMS } from './constants';
-import { SimulationParams } from './models/simulation-params.model';
-import type { GridEnvironmentConfig } from '../core/services/environment/grid/grid-environment.service';
+import { SimulationParams, SimulationStateView } from './models';
+import { AgentType, SimulationStatus } from '../core/enums';
+import { SimulationConfig } from '../core/models';
+import {
+	CARNIVORE_CONFIG,
+	Grid,
+	GridEnvironmentConfig,
+	GridEnvironmentService,
+	HERBIVORE_CONFIG,
+	PLANT_CONFIG,
+	SimulationEngine,
+} from '../core/services';
 
 @Component({
 	selector: 'app-simulation',
@@ -29,8 +34,10 @@ export class SimulationComponent implements OnInit, OnDestroy {
 	private _simulationLoopSub?: Subscription;
 
 	protected readonly status = signal<SimulationStatus>(SimulationStatus.Stopped);
-	protected readonly currentState = signal<SimulationState>({ agents: new Map(), iteration: 0 });
+	protected readonly currentState = signal<SimulationStateView>({ agents: new Map(), iteration: 0 });
 	protected readonly params = signal<SimulationParams>(DEFAULT_SIMULATION_PARAMS);
+	protected readonly gridHistory = signal<ReadonlyArray<Grid>>([]);
+	protected readonly stateHistory = signal<ReadonlyArray<SimulationStateView>>([]);
 	protected readonly gridSnapshot = signal<Grid>([]);
 
 	protected get initialized(): boolean {
@@ -41,7 +48,11 @@ export class SimulationComponent implements OnInit, OnDestroy {
 		const config = this._createSimulationConfig(this.params());
 		this._syncAgentParams();
 		this._simulationEngine.init(config);
-		this.currentState.set(this._simulationEngine.state);
+		this.gridSnapshot.set([]);
+		this.gridHistory.set([]);
+		this.stateHistory.set([]);
+		this._updateHistory();
+		this._updateCurrentState();
 		this._updateGridSnapshot();
 	}
 
@@ -104,13 +115,14 @@ export class SimulationComponent implements OnInit, OnDestroy {
 				if (this.status() !== SimulationStatus.Running) {
 					return;
 				}
-				if (this.currentState().iteration >= iterations) {
+				if (this.currentState().iteration >= iterations - 1) {
 					this.onStop();
 					return;
 				}
 				this._simulationEngine.step();
-				this.currentState.set(this._simulationEngine.state);
+				this._updateCurrentState();
 				this._updateGridSnapshot();
+				this._updateHistory();
 			});
 	}
 
@@ -121,8 +133,17 @@ export class SimulationComponent implements OnInit, OnDestroy {
 		}
 	}
 
+	private _updateCurrentState(): void {
+		this.currentState.set(new SimulationStateView(this._simulationEngine.state));
+	}
+
 	private _updateGridSnapshot(): void {
 		this.gridSnapshot.set(this._environment.getGridSnapshot());
+	}
+
+	private _updateHistory(): void {
+		this.gridHistory.update((history) => [...history, this._environment.getGridSnapshot()]);
+		this.stateHistory.update((history) => [...history, new SimulationStateView(this._simulationEngine.state)]);
 	}
 
 	protected onStart(): void {
@@ -160,7 +181,7 @@ export class SimulationComponent implements OnInit, OnDestroy {
 	protected onParamsChange(params: SimulationParams): void {
 		this.params.set(params);
 		this._stopSimulationLoop();
-		this.gridSnapshot.set([]);
+		this._initializeEngine();
 	}
 
 	public ngOnInit(): void {
