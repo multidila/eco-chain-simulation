@@ -105,6 +105,10 @@ export class GridEnvironmentService extends Environment<GridEnvironmentConfig> {
 		if (this._agentStates.has(agent.id)) {
 			throw new Error(`Agent with id ${agent.id} already exists`);
 		}
+		const sameAgentAlreadyOccupy = this.getAgentsAt(position).find(({ type }) => agent.type === type);
+		if (sameAgentAlreadyOccupy) {
+			return this.addAgent(agent, direction);
+		}
 		this._agentStates.set(agent.id, { agent, direction: direction ?? DEFAULT_DIRECTION, position });
 		this._addAgentToPosition(agent.id, position);
 	}

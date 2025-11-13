@@ -90,7 +90,7 @@ export class SimulationVisualizationComponent {
 	}
 
 	protected get displayIteration(): number {
-		return this.selectedIteration() + 1;
+		return this.selectedIteration();
 	}
 
 	protected get hasHistory(): boolean {

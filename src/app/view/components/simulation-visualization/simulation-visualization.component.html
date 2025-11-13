@@ -7,7 +7,7 @@
 			<div class="stats">
 				<div class="stat-item">
 					<span class="label">Iteration:</span>
-					<span class="value">{{ stats().iteration + 1 }}</span>
+					<span class="value">{{ stats().iteration }}</span>
 				</div>
 				<div class="stat-item">
 					<span class="label">Total Agents:</span>
@@ -29,7 +29,7 @@
 				@if (hasHistory) {
 					<div class="timeline-controls">
 						<span class="timeline-label">History Timeline</span>
-						<mat-slider [min]="1" [max]="maxIteration" [step]="1" [discrete]="true">
+						<mat-slider [min]="0" [max]="maxIteration" [step]="1" [discrete]="true">
 							<input
 								matSliderThumb
 								[ngModel]="displayIteration"

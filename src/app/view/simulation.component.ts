@@ -115,7 +115,7 @@ export class SimulationComponent implements OnInit, OnDestroy {
 				if (this.status() !== SimulationStatus.Running) {
 					return;
 				}
-				if (this.currentState().iteration >= iterations - 1) {
+				if (this.currentState().iteration >= iterations) {
 					this.onStop();
 					return;
 				}
