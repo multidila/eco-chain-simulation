@@ -66,8 +66,20 @@
 							<div class="param-group">
 								<div class="group-label">Energy</div>
 								<mat-form-field>
-									<mat-label>Value</mat-label>
+									<mat-label>Initial Energy</mat-label>
 									<input matInput type="number" [(ngModel)]="params().agents.plant.energy.initial" />
+								</mat-form-field>
+								<mat-form-field>
+									<mat-label>Max Energy</mat-label>
+									<input matInput type="number" [(ngModel)]="params().agents.plant.energy.max" />
+								</mat-form-field>
+								<mat-form-field>
+									<mat-label>Metabolism Rate</mat-label>
+									<input
+										matInput
+										type="number"
+										[(ngModel)]="params().agents.plant.energy.metabolismRate"
+									/>
 								</mat-form-field>
 							</div>
 						</div>

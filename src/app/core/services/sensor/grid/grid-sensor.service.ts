@@ -6,8 +6,9 @@ import { Agent, Sensor, SensorData } from '../../../models';
 import { GridEnvironmentService, GridPosition } from '../../environment/grid';
 
 interface ScanConeOptions {
-	range: number;
 	shift?: number;
+	distance: number;
+	skipDistance?: number;
 	restrictedSide?: 'left' | 'right';
 }
 
@@ -36,10 +37,10 @@ export class GridSensorService<TAgent extends Agent = Agent> extends Sensor<TAge
 		return this._config.agentTypes;
 	}
 
-	private _initializeAgentMap(): Map<AgentType, number> {
-		const map = new Map<AgentType, number>();
+	private _initializeAgentMap(): Map<AgentType, Agent[]> {
+		const map = new Map<AgentType, Agent[]>();
 		for (const agentType of this._agentTypes) {
-			map.set(agentType, 0);
+			map.set(agentType, []);
 		}
 		return map;
 	}
@@ -48,26 +49,24 @@ export class GridSensorService<TAgent extends Agent = Agent> extends Sensor<TAge
 		position: GridPosition,
 		direction: DirectionType,
 		options: ScanConeOptions,
-	): Map<AgentType, number> {
-		const { range, shift, restrictedSide } = options;
+	): Map<AgentType, Agent[]> {
+		const { distance: range, skipDistance: skip, shift, restrictedSide } = options;
 		const leftDirection = LEFT_ROTATION.get(direction);
 		const rightDirection = RIGHT_ROTATION.get(direction);
 		if (!leftDirection || !rightDirection) {
 			throw new Error(`Invalid direction: ${direction}`);
 		}
-		let basePosition = position;
-		if (shift != null && shift > 0) {
-			basePosition = this._environment.getNextPosition(position, direction, shift);
-		}
-		const agentsCountMap = this._initializeAgentMap();
-		for (let distance = 1; distance <= range; distance++) {
+		const basePosition = this._environment.getNextPosition(position, direction, shift);
+		const agentsMap = this._initializeAgentMap();
+		const skippedDistance = skip ?? 0;
+		for (let distance = skippedDistance; distance <= range; distance++) {
 			const center = this._environment.getNextPosition(basePosition, direction, distance);
 			const halfWidth = distance;
 			for (let off = -halfWidth; off <= halfWidth; off++) {
-				if (restrictedSide === 'left' && off >= 0) {
+				if (restrictedSide === 'left' && off < 0) {
 					continue;
 				}
-				if (restrictedSide === 'right' && off <= 0) {
+				if (restrictedSide === 'right' && off > 0) {
 					continue;
 				}
 				let newPosition = center;
@@ -77,21 +76,21 @@ export class GridSensorService<TAgent extends Agent = Agent> extends Sensor<TAge
 				if (off > 0) {
 					newPosition = this._environment.getNextPosition(center, rightDirection, off);
 				}
-				this._bumpCountsFromPos(newPosition, agentsCountMap);
+				this._addAgentsFromPos(newPosition, agentsMap);
 			}
 		}
-		return agentsCountMap;
+		return agentsMap;
 	}
 
 	private _scanHemiBox(
 		position: GridPosition,
 		direction: DirectionType,
 		options: ScanSquareOptions,
-	): Map<AgentType, number> {
+	): Map<AgentType, Agent[]> {
 		const radius = options.radius;
-		const agentsCountMap = this._initializeAgentMap();
+		const agentsMap = this._initializeAgentMap();
 		if (radius <= 0) {
-			return agentsCountMap;
+			return agentsMap;
 		}
 		const leftDirection = LEFT_ROTATION.get(direction);
 		const rightDirection = RIGHT_ROTATION.get(direction);
@@ -102,13 +101,13 @@ export class GridSensorService<TAgent extends Agent = Agent> extends Sensor<TAge
 			if (off === 0) {
 				continue;
 			}
-			let newPosition = position;
+			let newPosition;
 			if (off < 0) {
 				newPosition = this._environment.getNextPosition(position, leftDirection, -off);
 			} else {
 				newPosition = this._environment.getNextPosition(position, rightDirection, off);
 			}
-			this._bumpCountsFromPos(newPosition, agentsCountMap);
+			this._addAgentsFromPos(newPosition, agentsMap);
 		}
 		for (let row = 1; row <= radius; row++) {
 			const rowCenter = this._environment.getNextPosition(position, direction, row);
@@ -120,16 +119,18 @@ export class GridSensorService<TAgent extends Agent = Agent> extends Sensor<TAge
 				if (off > 0) {
 					newPosition = this._environment.getNextPosition(rowCenter, rightDirection, off);
 				}
-				this._bumpCountsFromPos(newPosition, agentsCountMap);
+				this._addAgentsFromPos(newPosition, agentsMap);
 			}
 		}
-		return agentsCountMap;
+		return agentsMap;
 	}
 
-	private _bumpCountsFromPos(position: GridPosition, agentsCountMap: Map<AgentType, number>): void {
+	private _addAgentsFromPos(position: GridPosition, agentsMap: Map<AgentType, Agent[]>): void {
 		const agents = this._environment.getAgentsAt(position);
 		for (const agent of agents) {
-			agentsCountMap.set(agent.type, (agentsCountMap.get(agent.type) ?? 0) + 1);
+			const agentList = agentsMap.get(agent.type) ?? [];
+			agentList.push(agent);
+			agentsMap.set(agent.type, agentList);
 		}
 	}
 
@@ -151,15 +152,17 @@ export class GridSensorService<TAgent extends Agent = Agent> extends Sensor<TAge
 			throw new Error(`Invalid direction: ${direction}`);
 		}
 		return {
-			agentsAhead: this._scanCone(position, direction, { range: this._visionRange }),
+			agentsAhead: this._scanCone(position, direction, { distance: this._visionRange, skipDistance: 2 }),
 			agentsLeft: this._scanCone(position, leftDirection, {
-				range: this._visionRange,
 				shift: 1,
+				distance: this._visionRange - 1,
+				skipDistance: 1,
 				restrictedSide: 'left',
 			}),
 			agentsRight: this._scanCone(position, rightDirection, {
-				range: this._visionRange,
 				shift: 1,
+				distance: this._visionRange - 1,
+				skipDistance: 1,
 				restrictedSide: 'right',
 			}),
 			agentsNearby: this._scanHemiBox(position, direction, { radius: 1 }),

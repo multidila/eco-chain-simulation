@@ -26,7 +26,7 @@ export type AgentNutritionParams = Partial<Record<AgentType, number>>;
 
 export interface PlantParams {
 	count: number;
-	energy: Omit<AgentEnergyParams, 'metabolismRate'>;
+	energy: AgentEnergyParams;
 }
 
 export interface HerbivoreParams {

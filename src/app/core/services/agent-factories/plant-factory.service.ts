@@ -4,7 +4,7 @@ import { AgentType } from '../../enums';
 import { AgentFactory, LivingAgent } from '../../models';
 import { ActionChainBehaviorStrategy } from '../behavior-strategies';
 import { PlantConfig } from './plant-config.model';
-import { ConstantEnergyStrategy } from '../energy-strategies/constant-energy-strategy';
+import { LivingEnergyStrategy } from '../energy-strategies';
 
 @Injectable()
 export class PlantFactory extends AgentFactory<LivingAgent> {
@@ -17,7 +17,11 @@ export class PlantFactory extends AgentFactory<LivingAgent> {
 			type: AgentType.Plant,
 			age: 0,
 			generation: 0,
-			energyStrategy: new ConstantEnergyStrategy(config.energy.value),
+			energyStrategy: new LivingEnergyStrategy(
+				config.energy.value,
+				config.energy.maxValue,
+				config.energy.metabolismRate,
+			),
 			behaviorStrategy: new ActionChainBehaviorStrategy(config.behavior.actions),
 		};
 	}

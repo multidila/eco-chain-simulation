@@ -10,6 +10,7 @@ import {
 	GRID_SENSOR_SERVICE_CONFIG,
 	GridEnvironmentService,
 	GridSensorService,
+	SIMULATION_ENGINE_CONFIG,
 	SimulationEngine,
 } from './core/services';
 import {
@@ -34,8 +35,6 @@ import {
 	PlantConfig,
 	PlantFactory,
 } from './core/services/agent-factories';
-import { GridEnvironmentPositionGenerator } from './core/services/environment/grid/grid-environment-position-generator.service';
-import { RandomPositionGenerator } from './core/services/environment/grid/random-position-generator.service';
 import { AGENT_FACTORIES } from './core/tokens';
 
 export const APP_CONFIG: ApplicationConfig = {
@@ -46,7 +45,12 @@ export const APP_CONFIG: ApplicationConfig = {
 		SimulationEngine,
 		GridSensorService,
 		GridEnvironmentService,
-		RandomPositionGenerator,
+		{
+			provide: SIMULATION_ENGINE_CONFIG,
+			useValue: {
+				agentProcessingOrder: [AgentType.Plant, AgentType.Herbivore, AgentType.Carnivore],
+			},
+		},
 		PlantFactory,
 		HerbivoreFactory,
 		CarnivoreFactory,
@@ -64,10 +68,6 @@ export const APP_CONFIG: ApplicationConfig = {
 		{
 			provide: Sensor,
 			useExisting: GridSensorService,
-		},
-		{
-			provide: GridEnvironmentPositionGenerator,
-			useExisting: RandomPositionGenerator,
 		},
 		{
 			provide: AGENT_FACTORIES,
@@ -102,9 +102,17 @@ export const APP_CONFIG: ApplicationConfig = {
 					foodChain.set(AgentType.Carnivore, new Set([AgentType.Herbivore]));
 
 					// Agent type mapping for neural network
-					const agentMapping = [AgentType.Plant, AgentType.Herbivore, AgentType.Carnivore];
+					const agentMapping = [AgentType.Herbivore, AgentType.Carnivore, AgentType.Plant];
+					const actionMapping = [
+						ActionType.RotateLeft,
+						ActionType.RotateRight,
+						ActionType.MoveForward,
+						ActionType.Eat,
+					];
 
 					// Plant: Respawn when dead
+					const plantGrowth = new GrowthAction();
+					const plantMetabolize = new MetabolizeAction();
 					const plantRespawn = new RespawnAction(environment, agentFactories);
 
 					// Herbivore: Growth → Metabolize → NeuralNetworkDecision → Reproduce → Die
@@ -122,20 +130,18 @@ export const APP_CONFIG: ApplicationConfig = {
 					// Create getter function that reads current nutrition values
 					herbivoreActions.set(
 						ActionType.Eat,
-						new EatAction(environment, foodChain, (agentType) => herbivoreConfig.nutrition[agentType] ?? 0),
+						new EatAction(
+							sensor,
+							environment,
+							foodChain,
+							(agentType) => herbivoreConfig.nutrition[agentType] ?? 0,
+						),
 					);
-
-					const herbivoreActionMapping = [
-						ActionType.MoveForward,
-						ActionType.RotateLeft,
-						ActionType.RotateRight,
-						ActionType.Eat,
-					];
 
 					const herbivoreDecision = new NeuralNetworkDecisionAction(
 						herbivoreActions,
 						agentMapping,
-						herbivoreActionMapping,
+						actionMapping,
 						sensor,
 						environment,
 					);
@@ -155,37 +161,36 @@ export const APP_CONFIG: ApplicationConfig = {
 					// Create getter function that reads current nutrition values
 					carnivoreActions.set(
 						ActionType.Eat,
-						new EatAction(environment, foodChain, (agentType) => carnivoreConfig.nutrition[agentType] ?? 0),
+						new EatAction(
+							sensor,
+							environment,
+							foodChain,
+							(agentType) => carnivoreConfig.nutrition[agentType] ?? 0,
+						),
 					);
-
-					const carnivoreActionMapping = [
-						ActionType.MoveForward,
-						ActionType.RotateLeft,
-						ActionType.RotateRight,
-						ActionType.Eat,
-					];
 
 					const carnivoreDecision = new NeuralNetworkDecisionAction(
 						carnivoreActions,
 						agentMapping,
-						carnivoreActionMapping,
+						actionMapping,
 						sensor,
 						environment,
 					);
 
+					plantGrowth.setNext(plantMetabolize).setNext(plantRespawn);
 					herbivoreGrowth
-						.setNext(herbivoreMetabolize)
-						.setNext(herbivoreDecision)
 						.setNext(herbivoreReproduce)
+						.setNext(herbivoreDecision)
+						.setNext(herbivoreMetabolize)
 						.setNext(herbivoreDie);
 					carnivoreGrowth
-						.setNext(carnivoreMetabolize)
-						.setNext(carnivoreDecision)
 						.setNext(carnivoreReproduce)
+						.setNext(carnivoreDecision)
+						.setNext(carnivoreMetabolize)
 						.setNext(carnivoreDie);
 					plantConfig.set({
 						behavior: {
-							actions: plantRespawn,
+							actions: plantGrowth,
 						},
 					});
 					herbivoreConfig.set({

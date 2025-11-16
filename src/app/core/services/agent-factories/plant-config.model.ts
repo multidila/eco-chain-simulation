@@ -8,6 +8,8 @@ export class PlantConfig {
 
 	public energy!: {
 		value: number;
+		maxValue: number;
+		metabolismRate: number;
 	};
 
 	public behavior!: {

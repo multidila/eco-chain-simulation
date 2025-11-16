@@ -24,10 +24,10 @@ export class LivingEnergyStrategy implements EnergyStrategy {
 	}
 
 	public addEnergy(value: number): void {
-		this._energy = Math.min(this._maxEnergy, this._energy + value);
+		this._energy = Math.floor(Math.min(this._maxEnergy, this._energy + value));
 	}
 
 	public consumeEnergy(value: number): void {
-		this._energy = Math.max(0, this._energy - value);
+		this._energy = Math.floor(Math.max(0, this._energy - value));
 	}
 }

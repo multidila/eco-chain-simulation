@@ -1,12 +1,19 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, InjectionToken } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 
-import { SimulationStatus } from '../../enums';
+import { AgentType, SimulationStatus } from '../../enums';
 import { Agent, Environment, SimulationConfig, SimulationState } from '../../models';
 import { AGENT_FACTORIES } from '../../tokens';
 
+export interface SimulationEngineConfig {
+	agentProcessingOrder: AgentType[];
+}
+
+export const SIMULATION_ENGINE_CONFIG = new InjectionToken<SimulationEngineConfig>('SIMULATION_ENGINE_CONFIG');
+
 @Injectable()
 export class SimulationEngine {
+	private readonly _config = inject(SIMULATION_ENGINE_CONFIG);
 	private readonly _environment = inject(Environment);
 	private readonly _agentFactories = inject(AGENT_FACTORIES);
 	private readonly _state: SimulationState = {
@@ -83,10 +90,20 @@ export class SimulationEngine {
 			return;
 		}
 		this._state.iteration++;
-		const agents = this._environment.getAllAgents();
-		for (const agent of agents) {
-			agent.behaviorStrategy.setAgent(agent);
-			agent.behaviorStrategy.act();
+
+		const allAgents = this._environment.getAllAgents();
+		const agentsByType = new Map<AgentType, Agent[]>();
+		for (const agent of allAgents) {
+			const typeAgents = agentsByType.get(agent.type) || [];
+			typeAgents.push(agent);
+			agentsByType.set(agent.type, typeAgents);
+		}
+		for (const agentType of this._config.agentProcessingOrder) {
+			const agents = agentsByType.get(agentType) || [];
+			for (const agent of agents) {
+				agent.behaviorStrategy.setAgent(agent);
+				agent.behaviorStrategy.act();
+			}
 		}
 		this._syncStateFromEnvironment();
 	}

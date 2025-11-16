@@ -59,7 +59,11 @@ export class SimulationComponent implements OnInit, OnDestroy {
 	private _syncAgentParams(): void {
 		const params = this.params();
 		this._plantConfig.set({
-			energy: { value: params.agents.plant.energy.initial },
+			energy: {
+				value: params.agents.plant.energy.initial,
+				maxValue: params.agents.plant.energy.max,
+				metabolismRate: params.agents.plant.energy.metabolismRate,
+			},
 		});
 		this._herbivoreConfig.set({
 			energy: {

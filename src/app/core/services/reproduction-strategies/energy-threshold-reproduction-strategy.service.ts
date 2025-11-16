@@ -10,8 +10,8 @@ export const ENERGY_THRESHOLD_REPRODUCTION_STRATEGY_CONFIG =
 export interface EnergyThresholdReproductionStrategyConfig {
 	shareRate: number;
 	threshold: number;
-	mutationRate?: number;
-	mutationStrength?: number;
+	mutationRate: number;
+	mutationStrength: number;
 }
 
 @Injectable()
@@ -27,17 +27,23 @@ export class EnergyThresholdReproductionStrategy<TAgent extends LivingAgent = Li
 	) {}
 
 	private get _agentFactories(): Map<AgentType, AgentFactory> {
-		this._agentFactoriesCache ??= this._injector.get(AGENT_FACTORIES);
-		return this._agentFactoriesCache;
+		return (this._agentFactoriesCache ??= this._injector.get(AGENT_FACTORIES));
+	}
+
+	private _generateGaussian(mean: number, sigma: number): number {
+		const u1 = Math.random();
+		const u2 = Math.random();
+		const z0 = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+		return mean + z0 * sigma;
 	}
 
 	private _mutateNeuralNetwork(neuralNetwork: NeuralNetwork): NeuralNetwork {
-		const mutationRate = this._config.mutationRate ?? 0.1; // 10% of weights mutate
-		const mutationStrength = this._config.mutationStrength ?? 0.2; // ±20% change
+		const mutationRate = this._config.mutationRate;
+		const mutationStrength = this._config.mutationStrength;
 		const mutatedWeights = neuralNetwork.weights.map((outputWeights) =>
 			outputWeights.map((weight) => {
 				if (Math.random() < mutationRate) {
-					const mutation = (Math.random() * 2 - 1) * mutationStrength;
+					const mutation = this._generateGaussian(0, mutationStrength);
 					return weight + mutation;
 				}
 				return weight;
@@ -45,7 +51,7 @@ export class EnergyThresholdReproductionStrategy<TAgent extends LivingAgent = Li
 		);
 		const mutatedBiases = neuralNetwork.biases.map((bias) => {
 			if (Math.random() < mutationRate) {
-				const mutation = (Math.random() * 2 - 1) * mutationStrength;
+				const mutation = this._generateGaussian(0, mutationStrength);
 				return bias + mutation;
 			}
 			return bias;
@@ -66,7 +72,7 @@ export class EnergyThresholdReproductionStrategy<TAgent extends LivingAgent = Li
 			return null;
 		}
 
-		const childEnergy = currentEnergy * this._config.shareRate;
+		const childEnergy = Math.floor(currentEnergy * this._config.shareRate);
 		const remainingEnergy = currentEnergy - childEnergy;
 		energyStrategy.consumeEnergy(remainingEnergy);
 

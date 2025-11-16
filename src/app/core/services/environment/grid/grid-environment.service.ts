@@ -1,9 +1,8 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, InjectionToken } from '@angular/core';
 
-import { GridEnvironmentPositionGenerator } from './grid-environment-position-generator.service';
 import { GridPosition } from './grid-position.model';
 import { Grid } from './grid.model';
-import { DirectionType } from '../../../enums';
+import { AgentType, DirectionType } from '../../../enums';
 import { Agent, Environment } from '../../../models';
 
 const DEFAULT_DIRECTION = DirectionType.North;
@@ -18,9 +17,27 @@ export interface GridEnvironmentConfig {
 	size: number;
 }
 
+export interface GridEnvironmentOccupancyConfig {
+	conflicts: Map<AgentType, Set<AgentType>>;
+}
+
+export const GRID_ENVIRONMENT_OCCUPANCY_CONFIG = new InjectionToken<GridEnvironmentOccupancyConfig>(
+	'GRID_ENVIRONMENT_OCCUPANCY_CONFIG',
+	{
+		providedIn: 'root',
+		factory: () => ({
+			conflicts: new Map<AgentType, Set<AgentType>>([
+				[AgentType.Herbivore, new Set<AgentType>([AgentType.Herbivore, AgentType.Carnivore])],
+				[AgentType.Carnivore, new Set<AgentType>([AgentType.Herbivore, AgentType.Carnivore])],
+				[AgentType.Plant, new Set<AgentType>([AgentType.Plant])],
+			]),
+		}),
+	},
+);
+
 @Injectable()
 export class GridEnvironmentService extends Environment<GridEnvironmentConfig> {
-	private readonly _positionGenerator = inject(GridEnvironmentPositionGenerator);
+	private readonly _occupancyConfig = inject(GRID_ENVIRONMENT_OCCUPANCY_CONFIG);
 
 	private _grid!: Grid;
 	private _agentStates!: Map<string, AgentState>;
@@ -51,6 +68,9 @@ export class GridEnvironmentService extends Environment<GridEnvironmentConfig> {
 	}
 
 	public getNextPosition(position: GridPosition, direction: DirectionType, distance: number = 0): GridPosition {
+		if (distance === 0) {
+			return position;
+		}
 		let newX = position.x;
 		let newY = position.y;
 		switch (direction) {
@@ -67,11 +87,7 @@ export class GridEnvironmentService extends Environment<GridEnvironmentConfig> {
 				newX = (position.x - 1 + this._gridSize) % this._gridSize;
 				break;
 		}
-		const newPosition: GridPosition = { x: newX, y: newY };
-		if (distance === 0) {
-			return newPosition;
-		}
-		return this.getNextPosition(newPosition, direction, distance - 1);
+		return this.getNextPosition({ x: newX, y: newY }, direction, distance - 1);
 	}
 
 	public getAllAgents(): Agent[] {
@@ -101,14 +117,26 @@ export class GridEnvironmentService extends Environment<GridEnvironmentConfig> {
 	}
 
 	public addAgent(agent: Agent, direction?: DirectionType): void {
-		const position = this._positionGenerator.generatePosition(agent, this._grid);
 		if (this._agentStates.has(agent.id)) {
 			throw new Error(`Agent with id ${agent.id} already exists`);
 		}
-		const sameAgentAlreadyOccupy = this.getAgentsAt(position).find(({ type }) => agent.type === type);
-		if (sameAgentAlreadyOccupy) {
-			return this.addAgent(agent, direction);
+		const conflictTypes = this._occupancyConfig.conflicts.get(agent.type) ?? new Set<AgentType>();
+		const availablePositions: GridPosition[] = [];
+		for (let y = 0; y < this._gridSize; y++) {
+			for (let x = 0; x < this._gridSize; x++) {
+				const agents = this.getAgentsAt({ x, y });
+				const hasConflict = agents.some((a) => conflictTypes.has(a.type));
+				if (!hasConflict) {
+					availablePositions.push({ x, y });
+				}
+			}
 		}
+		if (availablePositions.length === 0) {
+			console.warn(`No available position for agent ${agent.id} of type ${agent.type}`);
+			return;
+		}
+		const randomIndex = Math.floor(Math.random() * availablePositions.length);
+		const position = availablePositions[randomIndex];
 		this._agentStates.set(agent.id, { agent, direction: direction ?? DEFAULT_DIRECTION, position });
 		this._addAgentToPosition(agent.id, position);
 	}
